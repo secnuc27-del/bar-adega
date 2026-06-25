@@ -94,6 +94,11 @@
           Sair
         </button>
 
+        <!-- Restaurar categorias e bebidas padrão -->
+        <button onclick="seedDefaultsToFirestore()" title="Restaurar categorias e bebidas padrão no banco de dados" class="text-xs bg-neutral-800 border border-neutral-700 text-neutral-300 hover:bg-amber-500 hover:text-black hover:border-amber-500 px-3 py-1.5 rounded-full font-medium transition active:scale-95 flex items-center gap-1.5">
+          ↺ Restaurar Padrões
+        </button>
+
         <!-- Botão Fale Conosco -->
         <button onclick="openContactModal()" class="hidden sm:inline-flex items-center gap-2 rounded-full bg-amber-500 px-5 py-2 text-sm font-semibold text-black hover:bg-amber-600 transition-colors">
           Fale Conosco
@@ -1006,6 +1011,81 @@
         }, 50);
       }
     };
+
+    // ==========================================
+    // RESTAURAR DADOS PADRãO NO FIREBASE
+    // (adiciona itens padrão que ainda não existem, sem apagar os customizados)
+    // ==========================================
+    async function seedDefaultsToFirestore() {
+      if (!isFirebaseActive) {
+        alert("Você precisa estar conectado ao Firebase (Online) para restaurar os padrões.");
+        return;
+      }
+
+      if (!confirm("Isso vai adicionar as Categorias e Bebidas padrão de volta ao banco de dados.\nOs itens que você já criou NÃO serão apagados.\n\nContinuar?")) return;
+
+      const btn = event.currentTarget;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = "Restaurando...";
+      btn.disabled = true;
+
+      try {
+        const fs = firebase.firestore();
+        const defaultCats = [
+          { slug: "cervejas", name: "Cervejas", tagline: "Estupidamente geladas", emoji: "🍺", image: "fotos/cerveja.ff.jpeg" },
+          { slug: "destilados", name: "Destilados", tagline: "Vodka, whisky, cachaça", emoji: "🥃", image: "fotos/destilado.fgh.jpg" }
+        ];
+        const defaultProds = [
+          { id: "heineken", name: "Cerveja Heineken", category: "cervejas", size: "Lata 350ml", volume: "350ml", pack: "Fardo c/ 12", description: "Puro malte importado, com sabor refrescante, lúpulo selecionado e espuma cremosa inconfundível.", image: "fotos/Heinekencaixa2.webp", emoji: "🍺" },
+          { id: "amstel", name: "Cerveja Amstel", category: "cervejas", size: "Lata 350ml", volume: "350ml", pack: "Fardo c/ 12", description: "A tradicional receita europeia puro malte de Amsterda.", image: "fotos/caixacervejaamstel.webp", emoji: "🍺" },
+          { id: "brahma", name: "Cerveja Brahma", category: "cervejas", size: "Lata 350ml", volume: "350ml", pack: "Fardo c/ 12", description: "O sabor do chopp na lata. Espuma cremosa, refrescancia classica.", image: "fotos/cervejacaixabrahma.webp", emoji: "🍺" },
+          { id: "skol", name: "Cerveja Skol", category: "cervejas", size: "Lata 350ml", volume: "350ml", pack: "Fardo c/ 12", description: "A cerveja que desce redondo. Leveza sem igual.", image: "fotos/skolcaixa.jpg", emoji: "🍺" },
+          { id: "campari", name: "Bitter Campari", category: "destilados", size: "Garrafa 900ml", volume: "900ml", pack: "Unidade", description: "O aperitivo clássico italiano de cor vermelha icônica.", image: "fotos/campare3.webp", emoji: "🥃" },
+          { id: "antarctica", name: "Cerveja Antarctica", category: "cervejas", size: "Lata 350ml", volume: "350ml", pack: "Fardo c/ 12", description: "Cerveja Antarctica Pilsen, uma das mais clássicas do país.", image: "fotos/antartica.webp", emoji: "🍺" },
+          { id: "itaipava", name: "Cerveja Itaipava", category: "cervejas", size: "Lata 350ml", volume: "350ml", pack: "Fardo c/ 12", description: "Clara, leve, sabosa e refrescante, ideal para comemorações.", image: "fotos/itaipava.webp", emoji: "🍺" },
+          { id: "51", name: "Cachaça 51", category: "destilados", size: "Garrafa 965ml", volume: "965ml", pack: "Unidade", description: "A cachaça mais querida e vendida do Brasil.", image: "fotos/caçhaca51.webp", emoji: "🥃" }
+        ];
+
+        const batch = fs.batch();
+        let added = 0;
+
+        // Adicionar categorias padrão que ainda não existem
+        for (const cat of defaultCats) {
+          const existing = dbCategories.find(c => c.slug === cat.slug);
+          if (!existing) {
+            const ref = fs.collection("categories").doc(cat.slug);
+            const { slug, ...data } = cat;
+            batch.set(ref, data);
+            added++;
+          }
+        }
+
+        // Adicionar produtos padrão que ainda não existem
+        for (const prod of defaultProds) {
+          const existing = dbProducts.find(p => p.id === prod.id);
+          if (!existing) {
+            const ref = fs.collection("products").doc(prod.id);
+            const { id, ...data } = prod;
+            batch.set(ref, data);
+            added++;
+          }
+        }
+
+        await batch.commit();
+
+        if (added === 0) {
+          alert("✅ Todos os itens padrão já estão no banco de dados. Nenhum item foi adicionado.");
+        } else {
+          alert(`✅ ${added} itens padrão restaurados com sucesso!`);
+        }
+      } catch (err) {
+        console.error("seedDefaultsToFirestore ERRO:", err);
+        alert("Erro ao restaurar padrões: " + (err.message || String(err)));
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
 
     // ==========================================
     // IMAGENS (PREVIEW E REMOÇÃO)
