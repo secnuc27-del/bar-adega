@@ -47,7 +47,7 @@
       <!-- Navegação Principal (Desktop) -->
       <nav class="hidden md:flex items-center gap-1">
         <a href="#home" data-target="home" class="nav-link nav-active" data-i18n="navHome">Início</a>
-        <a href="#catalog" data-target="catalog" class="nav-link text-gray-400" data-i18n="navCategories">Bebidas</a>
+        <a href="#catalog" data-target="catalog" class="nav-link text-gray-400" data-i18n="navCategories">Cardápio</a>
         <a href="#contact" data-target="contact" class="nav-link text-gray-400" data-i18n="navContact">Contato</a>
       </nav>
 
@@ -78,7 +78,7 @@
           </div>
 
           <div class="circular-menu-item">
-            <span class="circular-menu-label" data-i18n="navCategories">Bebidas</span>
+            <span class="circular-menu-label" data-i18n="navCategories">Cardápio</span>
             <a href="#catalog" data-target="catalog" onclick="toggleCircularMenu()" class="w-10 h-10 bg-neutral-900 border border-neutral-700 text-amber-500 rounded-full flex items-center justify-center shadow-lg hover:bg-neutral-800 transition-colors">
               <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
@@ -123,7 +123,7 @@
           </p>
           <div class="mt-8 flex flex-wrap gap-3">
             <a href="#catalog" data-target="catalog" class="inline-flex items-center gap-2 rounded-full bg-amber-500 px-6 py-3 font-medium text-black hover:bg-amber-600 transition shadow-glow" data-i18n="viewDrinks">
-              Ver bebidas
+              Ver cardápio
             </a>
             <button onclick="openContactModal()" class="inline-flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-950/40 px-6 py-3 font-medium hover:bg-neutral-800 transition text-white">
               <svg class="h-5 w-5 text-whats" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -155,7 +155,7 @@
         <div class="flex items-end justify-between gap-4 mb-8">
           <div>
             <div class="text-xs uppercase tracking-[0.25em] text-amber-500" data-i18n="categoriesTitle">Categorias</div>
-            <h2 class="font-display text-4xl sm:text-5xl mt-2 text-white" data-i18n="categoriesSubtitle">Escolha sua bebida</h2>
+            <h2 class="font-display text-4xl sm:text-5xl mt-2 text-white" data-i18n="categoriesSubtitle">Nosso cardápio</h2>
           </div>
           <a href="#catalog" data-target="catalog" class="text-sm text-gray-400 hover:text-amber-500 inline-flex items-center gap-1 transition-colors">
             <span data-i18n="viewAll">Ver todas</span>
@@ -310,11 +310,20 @@
       </div>
       
       <!-- Lado Direito: Links -->
-      <div class="flex items-center gap-6 text-xs text-gray-500">
-        <button onclick="openInfoModal('sobre')" class="hover:text-amber-500 transition-colors">Sobre</button>
-        <button onclick="openInfoModal('privacidade')" class="hover:text-amber-500 transition-colors">Privacidade</button>
-        <button onclick="openInfoModal('termos')" class="hover:text-amber-500 transition-colors">Termos</button>
-        <button onclick="openContactModal()" class="hover:text-amber-500 transition-colors">Contato</button>
+      <div class="flex flex-col items-end gap-4">
+        <div class="flex items-center gap-6 text-xs text-gray-500">
+          <button onclick="openInfoModal('sobre')" class="hover:text-amber-500 transition-colors">Sobre</button>
+          <button onclick="openInfoModal('privacidade')" class="hover:text-amber-500 transition-colors">Privacidade</button>
+          <button onclick="openInfoModal('termos')" class="hover:text-amber-500 transition-colors">Termos</button>
+          <button onclick="openContactModal()" class="hover:text-amber-500 transition-colors">Contato</button>
+        </div>
+        <!-- Contato do desenvolvedor -->
+        <div class="text-[10px] text-neutral-600 text-right">
+          Precisa de algo mais personalizado ou quer adicionar funcionalidades?
+          <a href="mailto:kaelvorastudios2026@gmail.com" class="text-amber-600/70 hover:text-amber-500 transition-colors ml-1">
+            Fale com a empresa desenvolvedora →
+          </a>
+        </div>
       </div>
     </div>
   </footer>

@@ -1318,7 +1318,6 @@
     // CRUDS - PRODUTOS
     // ==========================================
     function openProductModal(id = "") {
-      populateCategoriesDropdown();
       const modal = document.getElementById("product-modal");
       const form = document.getElementById("product-form");
       const title = document.getElementById("product-modal-title");
@@ -1326,13 +1325,16 @@
       form.reset();
       document.getElementById("product-id").value = "";
       clearGallery();
+      // Popula dropdown DEPOIS do form.reset() para as options não serem apagadas
+      populateCategoriesDropdown();
 
       if (id) {
-        title.textContent = "Editar Bebida";
+        title.textContent = "Editar Produto";
         const p = dbProducts.find(prod => prod.id === id);
         if (p) {
           document.getElementById("product-id").value = p.id;
           document.getElementById("product-name").value = p.name;
+          // Definir categoria DEPOIS de popular o dropdown
           document.getElementById("product-category").value = p.category;
           document.getElementById("product-emoji").value = p.emoji || "";
           document.getElementById("product-volume").value = p.size || p.volume || "";
@@ -1348,7 +1350,7 @@
           renderGalleryGrid();
         }
       } else {
-        title.textContent = "Nova Bebida";
+        title.textContent = "Novo Produto";
         document.getElementById("product-emoji").value = "";
       }
 
@@ -1382,18 +1384,24 @@
       if (saveBtn) { saveBtn.textContent = "Salvando..."; saveBtn.disabled = true; }
 
       try {
-        // A galeria já está em productGallery com dataUrls prontas
-        // Se galeria vazia e editando produto existente, manter a galeria anterior
-        let galleryUrls = productGallery.map(item => item.dataUrl);
-        if (galleryUrls.length === 0 && id) {
+        // Monta lista de mídias (gallery)
+        let galleryItems = productGallery.map(item => ({ type: item.type, url: item.dataUrl }));
+
+        // Se galeria vazia e editando produto, manter galeria anterior
+        if (galleryItems.length === 0 && id) {
           const existing = dbProducts.find(p => p.id === id);
           if (existing) {
-            galleryUrls = existing.gallery || (existing.image ? [existing.image] : []);
+            const prevUrls = existing.gallery || (existing.image ? [existing.image] : []);
+            galleryItems = prevUrls.map(u => ({
+              type: u.startsWith("data:video") ? "video" : "image",
+              url: u
+            }));
           }
         }
 
-        const coverImage = galleryUrls[0] || "";
+        const coverImage = galleryItems[0]?.url || "";
 
+        // Documento principal do produto (apenas capa, sem o array da galeria completa)
         const productData = {
           name: name,
           category: category,
@@ -1403,23 +1411,43 @@
           pack: pack || "",
           description: description || "",
           image: coverImage,
-          gallery: galleryUrls
+          galleryCount: galleryItems.length
         };
 
         if (isFirebaseActive) {
+          const db = firebase.firestore();
+          let docRef;
+
           if (id) {
-            await firebase.firestore().collection("products").doc(id).update(productData);
+            docRef = db.collection("products").doc(id);
+            await docRef.update(productData);
           } else {
-            await firebase.firestore().collection("products").add(productData);
+            docRef = await db.collection("products").add(productData);
           }
+
+          // Salvar cada item da galeria na subcoleção (evita limite de 1MB do doc principal)
+          const galleryCol = docRef.collection("gallery");
+
+          // Limpar galeria anterior
+          const oldDocs = await galleryCol.get();
+          const batch = db.batch();
+          oldDocs.forEach(d => batch.delete(d.ref));
+
+          // Gravar nova galeria
+          galleryItems.forEach((item, idx) => {
+            batch.set(galleryCol.doc(String(idx)), { idx, type: item.type, url: item.url });
+          });
+
+          await batch.commit();
         } else {
-          // LocalStorage Fallback
+          // LocalStorage Fallback — guarda gallery inline
+          const localData = { ...productData, gallery: galleryItems.map(i => i.url) };
           if (id) {
             const idx = dbProducts.findIndex(p => p.id === id);
-            if (idx !== -1) dbProducts[idx] = { id: id, ...productData };
+            if (idx !== -1) dbProducts[idx] = { id: id, ...localData };
           } else {
             const newId = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-            dbProducts.push({ id: newId, ...productData });
+            dbProducts.push({ id: newId, ...localData });
           }
           localStorage.setItem("_local_products", JSON.stringify(dbProducts));
           renderAll();
@@ -1428,7 +1456,7 @@
         closeProductModal();
       } catch (err) {
         console.error("saveProduct ERRO:", err);
-        alert("Erro ao salvar bebida!\n" + (err.message || String(err)));
+        alert("Erro ao salvar produto!\n" + (err.message || String(err)));
       } finally {
         if (saveBtn) { saveBtn.textContent = originalBtnText; saveBtn.disabled = false; }
       }

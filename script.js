@@ -572,31 +572,51 @@ function openProductDetails(id) {
   const mainZone  = document.getElementById("modal-media-main");
   const thumbsBar = document.getElementById("modal-media-thumbs");
 
-  if (p.image) {
-    const isMainVid = p.image.startsWith("data:video") || /\.(mp4|webm|ogg)/.test(p.image);
-    mainZone.innerHTML = isMainVid
-      ? `<video id="modal-product-main-img" src="${p.image}" class="absolute inset-0 w-full h-full object-cover" autoplay muted loop playsinline controls></video>`
-      : `<img id="modal-product-main-img" src="${p.image}" class="absolute inset-0 w-full h-full object-cover transition-all duration-300" alt="${p.name}">`;
+  // Função que renderiza a mídia principal e a galeria de thumbnails
+  function renderModalMedia(product, galleryUrls) {
+    const imgSrc = product.image;
+    if (imgSrc) {
+      const isMainVid = imgSrc.startsWith("data:video") || /\.(mp4|webm|ogg)/.test(imgSrc);
+      mainZone.innerHTML = isMainVid
+        ? `<video id="modal-product-main-img" src="${imgSrc}" class="absolute inset-0 w-full h-full object-contain bg-neutral-950" autoplay muted loop playsinline controls></video>`
+        : `<img id="modal-product-main-img" src="${imgSrc}" class="absolute inset-0 w-full h-full object-contain bg-neutral-950 p-3 transition-all duration-300" alt="${product.name}">`;
 
-    // Faixa de thumbnails abaixo (só aparece se tiver mais de 1 item)
-    const gallery = (p.gallery && p.gallery.length > 1) ? p.gallery : null;
-    if (gallery) {
-      thumbsBar.classList.remove("hidden");
-      thumbsBar.innerHTML = gallery.map((url, idx) => {
-        const isVid = url.startsWith("data:video") || /\.(mp4|webm|ogg)/.test(url);
-        const thumb = isVid
-          ? `<div class="absolute inset-0 bg-neutral-800 flex items-center justify-center"><svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>`
-          : `<img src="${url}" class="absolute inset-0 w-full h-full object-cover">`;
-        return `<div onclick="changeModalActiveMedia('${url}', this)" class="relative w-14 h-14 flex-shrink-0 rounded-lg border-2 bg-neutral-900 cursor-pointer overflow-hidden transition-all hover:scale-105 hover:border-amber-500 ${idx === 0 ? 'border-amber-500 ring-2 ring-amber-500/40' : 'border-neutral-700 opacity-60 hover:opacity-100'}">${thumb}</div>`;
-      }).join("");
+      const gallery = galleryUrls && galleryUrls.length > 1 ? galleryUrls : null;
+      if (gallery) {
+        thumbsBar.classList.remove("hidden");
+        thumbsBar.innerHTML = gallery.map((url, idx) => {
+          const isVid = url.startsWith("data:video") || /\.(mp4|webm|ogg)/.test(url);
+          const thumb = isVid
+            ? `<div class="absolute inset-0 bg-neutral-800 flex items-center justify-center"><svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>`
+            : `<img src="${url}" class="absolute inset-0 w-full h-full object-cover">`;
+          return `<div onclick="changeModalActiveMedia('${url}', this)" class="relative w-14 h-14 flex-shrink-0 rounded-lg border-2 bg-neutral-900 cursor-pointer overflow-hidden transition-all hover:scale-105 hover:border-amber-500 ${idx === 0 ? 'border-amber-500 ring-2 ring-amber-500/40' : 'border-neutral-700 opacity-60 hover:opacity-100'}">${thumb}</div>`;
+        }).join("");
+      } else {
+        thumbsBar.classList.add("hidden");
+        thumbsBar.innerHTML = "";
+      }
     } else {
+      mainZone.innerHTML = `<div id="modal-product-emoji" class="absolute inset-0 flex items-center justify-center text-[7rem] sm:text-[8rem] select-none drop-shadow-[0_15px_30px_rgba(0,0,0,0.7)]">${product.emoji || '🍺'}</div>`;
       thumbsBar.classList.add("hidden");
       thumbsBar.innerHTML = "";
     }
-  } else {
-    mainZone.innerHTML = `<div id="modal-product-emoji" class="absolute inset-0 flex items-center justify-center text-[7rem] sm:text-[8rem] select-none drop-shadow-[0_15px_30px_rgba(0,0,0,0.7)]">${p.emoji || '🍺'}</div>`;
-    thumbsBar.classList.add("hidden");
-    thumbsBar.innerHTML = "";
+  }
+
+  // Renderizar imediatamente com o que já temos em p.gallery
+  const inlineGallery = p.gallery && p.gallery.length > 0 ? p.gallery : (p.image ? [p.image] : []);
+  renderModalMedia(p, inlineGallery);
+
+  // Se produto tem galeria salva em subcoleção do Firestore, buscar de lá
+  if (typeof firebase !== "undefined" && firebase.apps && firebase.apps.length && p.galleryCount > 1) {
+    firebase.firestore().collection("products").doc(p.id).collection("gallery")
+      .orderBy("idx").get()
+      .then(snap => {
+        if (!snap.empty) {
+          const urls = snap.docs.map(d => d.data().url);
+          renderModalMedia(p, urls);
+        }
+      })
+      .catch(() => {}); // falha silenciosa, já tem o inline
   }
   
   // Atualizar botão de ação do modal → agora é Fale Conosco (abre drawer)
@@ -649,7 +669,7 @@ function changeModalActiveMedia(mediaSrc, thumbEl) {
       const img = document.createElement("img");
       img.id = "modal-product-main-img";
       img.src = mediaSrc;
-      img.className = "absolute inset-0 w-full h-full object-cover transition-all duration-300";
+      img.className = "absolute inset-0 w-full h-full object-contain bg-neutral-950 p-3 transition-all duration-300";
       img.style.opacity = "0";
       mainZone.innerHTML = "";
       mainZone.appendChild(img);
