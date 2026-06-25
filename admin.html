@@ -702,6 +702,7 @@
               <span id="product-preview-placeholder">Preview</span>
             </div>
           </div>
+          <span id="product-image-size-info" class="text-[10px] text-neutral-500 mt-1 block"></span>
         </div>
         <div class="p-4 border-t border-neutral-800 flex justify-end gap-3 pt-4">
           <button type="button" onclick="closeProductModal()" class="px-5 py-2.5 border border-neutral-800 hover:bg-neutral-850 rounded-xl text-sm text-neutral-300 font-medium">Cancelar</button>
@@ -752,6 +753,7 @@
               <span id="category-preview-placeholder">Preview</span>
             </div>
           </div>
+          <span id="category-image-size-info" class="text-[10px] text-neutral-500 mt-1 block"></span>
         </div>
         <div class="p-4 border-t border-neutral-800 flex justify-end gap-3 pt-4">
           <button type="button" onclick="closeCategoryModal()" class="px-5 py-2.5 border border-neutral-800 hover:bg-neutral-850 rounded-xl text-sm text-neutral-300 font-medium">Cancelar</button>
@@ -1013,8 +1015,17 @@
       const preview = document.getElementById(previewId);
       const placeholder = preview.nextElementSibling;
       const removeBtn = document.getElementById(input.id.replace("-file", "-remove"));
+      // Informe de tamanho (id baseado no contexto: product ou category)
+      const sizeInfoId = input.id.replace("-image-file", "-image-size-info");
+      const sizeInfoEl = document.getElementById(sizeInfoId);
 
       if (file) {
+        // Limitar tamanho do arquivo original a 15MB
+        const MAX_MB = 15;
+        if (file.size > MAX_MB * 1024 * 1024) {
+          alert(`Foto muito grande! O máximo permitido é ${MAX_MB}MB. Sua foto tem ${(file.size / 1024 / 1024).toFixed(1)}MB.\nO site irá comprimí-la automaticamente ao salvar.`);
+        }
+
         const reader = new FileReader();
         reader.onload = function(e) {
           preview.src = e.target.result;
@@ -1022,6 +1033,11 @@
           preview.dataset.removed = "false";
           if (placeholder) placeholder.classList.add("hidden");
           if (removeBtn) removeBtn.classList.remove("hidden");
+          if (sizeInfoEl) {
+            const sizeKb = (file.size / 1024).toFixed(0);
+            const sizeMb = (file.size / 1024 / 1024).toFixed(1);
+            sizeInfoEl.textContent = `Original: ${sizeMb}MB (${sizeKb}KB) — será comprimida ao salvar`;
+          }
         };
         reader.readAsDataURL(file);
       }
@@ -1041,37 +1057,50 @@
       if (removeBtn) removeBtn.classList.add("hidden");
     }
 
-    function compressImage(file, maxWidth = 800, maxHeight = 800, quality = 0.7) {
+    // Comprime a imagem iterativamente até caber no Firestore (< 700KB)
+    function compressImage(file) {
       return new Promise((resolve, reject) => {
+        const MAX_OUTPUT_BYTES = 700 * 1024; // 700KB alvo (Firestore doc limit = 1MB, Base64 +33%)
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = (event) => {
           const img = new Image();
           img.onload = () => {
-            const canvas = document.createElement("canvas");
-            let width = img.width;
-            let height = img.height;
+            const tryCompress = (maxDim, quality) => {
+              const canvas = document.createElement("canvas");
+              let w = img.width;
+              let h = img.height;
 
-            if (width > height) {
-              if (width > maxWidth) {
-                height = Math.round((height * maxWidth) / width);
-                width = maxWidth;
+              if (w > h) {
+                if (w > maxDim) { h = Math.round((h * maxDim) / w); w = maxDim; }
+              } else {
+                if (h > maxDim) { w = Math.round((w * maxDim) / h); h = maxDim; }
               }
-            } else {
-              if (height > maxHeight) {
-                width = Math.round((width * maxHeight) / height);
-                height = maxHeight;
-              }
+
+              canvas.width = w;
+              canvas.height = h;
+              canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+              return canvas.toDataURL("image/jpeg", quality);
+            };
+
+            // Tentativas progressivas: grande/boa -> menor/média -> pequena/baixa
+            const attempts = [
+              { maxDim: 1200, quality: 0.80 },
+              { maxDim: 900,  quality: 0.70 },
+              { maxDim: 700,  quality: 0.60 },
+              { maxDim: 500,  quality: 0.50 },
+              { maxDim: 400,  quality: 0.40 },
+            ];
+
+            let result = null;
+            for (const { maxDim, quality } of attempts) {
+              result = tryCompress(maxDim, quality);
+              // base64 string tem overhead de ~33%, calcular tamanho real aproximado
+              const approxBytes = Math.round((result.length - 22) * 0.75);
+              if (approxBytes <= MAX_OUTPUT_BYTES) break;
             }
 
-            canvas.width = width;
-            canvas.height = height;
-
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0, width, height);
-
-            const dataUrl = canvas.toDataURL("image/jpeg", quality);
-            resolve(dataUrl);
+            resolve(result);
           };
           img.onerror = (err) => reject(err);
           img.src = event.target.result;
