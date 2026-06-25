@@ -383,8 +383,13 @@
     <div class="detail-overlay" onclick="closeProductDetails()"></div>
     <div class="detail-content grid md:grid-cols-2 max-w-4xl overflow-hidden">
       <!-- Lado Esquerdo: Imagem/Mídia -->
-      <div id="modal-product-badge" class="relative h-72 md:h-full min-h-[300px] md:min-h-[450px] w-full bg-gradient-to-br from-amber-500/5 via-neutral-850 to-neutral-950 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-neutral-800/80 overflow-hidden">
-        <div id="modal-product-emoji" class="text-[7rem] sm:text-[8rem] select-none drop-shadow-[0_15px_30px_rgba(0,0,0,0.7)]">🍺</div>
+      <div id="modal-product-badge" class="relative flex flex-col h-72 md:h-full min-h-[300px] md:min-h-[450px] w-full bg-gradient-to-br from-amber-500/5 via-neutral-850 to-neutral-950 border-b md:border-b-0 md:border-r border-neutral-800/80">
+        <!-- Área principal da mídia (ocupa todo o espaço acima dos thumbnails) -->
+        <div id="modal-media-main" class="relative flex-1 overflow-hidden">
+          <div id="modal-product-emoji" class="absolute inset-0 flex items-center justify-center text-[7rem] sm:text-[8rem] select-none drop-shadow-[0_15px_30px_rgba(0,0,0,0.7)]">🍺</div>
+        </div>
+        <!-- Faixa de thumbnails (abaixo da foto, fora dela) -->
+        <div id="modal-media-thumbs" class="hidden flex-shrink-0 flex items-center gap-2 px-3 py-2.5 bg-neutral-950/90 border-t border-neutral-800 overflow-x-auto"></div>
       </div>
       
       <!-- Lado Direito: Informações -->

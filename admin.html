@@ -1126,9 +1126,9 @@
       const isVideo = file.type.startsWith("video/");
       if (!isImage && !isVideo) return;
 
-      const MAX_VIDEO_MB = 10;
+      const MAX_VIDEO_MB = 100;
       if (isVideo && file.size > MAX_VIDEO_MB * 1024 * 1024) {
-        alert(`Vídeo muito grande (${(file.size/1024/1024).toFixed(1)}MB). Máximo: ${MAX_VIDEO_MB}MB.\nUse vídeos curtos de alguns segundos.`);
+        alert(`Vídeo muito grande (${(file.size/1024/1024).toFixed(1)}MB). Máximo: ${MAX_VIDEO_MB}MB.\nUse vídeos menores.`);
         return;
       }
 
@@ -1267,13 +1267,13 @@
               return canvas.toDataURL("image/jpeg", quality);
             };
 
-            // Tentativas progressivas: grande/boa -> menor/média -> pequena/baixa
+            // Tentativas progressivas: alta qualidade -> média -> baixa
             const attempts = [
-              { maxDim: 1200, quality: 0.80 },
-              { maxDim: 900,  quality: 0.70 },
-              { maxDim: 700,  quality: 0.60 },
-              { maxDim: 500,  quality: 0.50 },
-              { maxDim: 400,  quality: 0.40 },
+              { maxDim: 1600, quality: 0.92 },
+              { maxDim: 1200, quality: 0.85 },
+              { maxDim: 1000, quality: 0.78 },
+              { maxDim: 800,  quality: 0.70 },
+              { maxDim: 600,  quality: 0.60 },
             ];
 
             let result = null;

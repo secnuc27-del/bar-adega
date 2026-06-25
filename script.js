@@ -568,38 +568,35 @@ function openProductDetails(id) {
   }
   descEl.textContent = p.description;
 
-  // Renderizar área de mídia (Imagem com Galeria ou Emoji)
+  // Renderizar área de mídia usando nova estrutura (main acima + thumbs abaixo)
+  const mainZone  = document.getElementById("modal-media-main");
+  const thumbsBar = document.getElementById("modal-media-thumbs");
+
   if (p.image) {
-    let galleryHtml = "";
-    if (p.gallery && p.gallery.length > 1) {
-      galleryHtml = `
-        <div class="absolute bottom-0 left-0 right-0 flex justify-center gap-2 z-10 px-4 py-3 bg-gradient-to-t from-black/70 to-transparent">
-          ${p.gallery.map((url, idx) => {
-            const isVid = url.startsWith("data:video") || /\.(mp4|webm|ogg)/.test(url);
-            const thumb = isVid
-              ? `<div class="absolute inset-0 bg-neutral-900 flex items-center justify-center"><svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>`
-              : `<img src="${url}" class="absolute inset-0 w-full h-full object-cover rounded-lg">`;
-            return `<div onclick="event.stopPropagation(); changeModalActiveMedia('${url}', this)" class="relative w-14 h-14 rounded-lg border-2 bg-neutral-900/80 cursor-pointer overflow-hidden transition-all hover:border-amber-500 flex-shrink-0 ${idx === 0 ? 'border-amber-500 ring-2 ring-amber-500/30 scale-105' : 'border-neutral-700 opacity-70 hover:opacity-100'}">${thumb}</div>`;
-          }).join("")}
-        </div>
-      `;
-    }
-
     const isMainVid = p.image.startsWith("data:video") || /\.(mp4|webm|ogg)/.test(p.image);
-    const mainMediaHtml = isMainVid
+    mainZone.innerHTML = isMainVid
       ? `<video id="modal-product-main-img" src="${p.image}" class="absolute inset-0 w-full h-full object-cover" autoplay muted loop playsinline controls></video>`
-      : `<img id="modal-product-main-img" src="${p.image}" class="absolute inset-0 w-full h-full object-cover transition-all duration-300 hover:scale-[1.03]" alt="${p.name}">`;
+      : `<img id="modal-product-main-img" src="${p.image}" class="absolute inset-0 w-full h-full object-cover transition-all duration-300" alt="${p.name}">`;
 
-    badgeContainer.innerHTML = `
-      ${mainMediaHtml}
-      ${galleryHtml}
-    `;
+    // Faixa de thumbnails abaixo (só aparece se tiver mais de 1 item)
+    const gallery = (p.gallery && p.gallery.length > 1) ? p.gallery : null;
+    if (gallery) {
+      thumbsBar.classList.remove("hidden");
+      thumbsBar.innerHTML = gallery.map((url, idx) => {
+        const isVid = url.startsWith("data:video") || /\.(mp4|webm|ogg)/.test(url);
+        const thumb = isVid
+          ? `<div class="absolute inset-0 bg-neutral-800 flex items-center justify-center"><svg class="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>`
+          : `<img src="${url}" class="absolute inset-0 w-full h-full object-cover">`;
+        return `<div onclick="changeModalActiveMedia('${url}', this)" class="relative w-14 h-14 flex-shrink-0 rounded-lg border-2 bg-neutral-900 cursor-pointer overflow-hidden transition-all hover:scale-105 hover:border-amber-500 ${idx === 0 ? 'border-amber-500 ring-2 ring-amber-500/40' : 'border-neutral-700 opacity-60 hover:opacity-100'}">${thumb}</div>`;
+      }).join("");
+    } else {
+      thumbsBar.classList.add("hidden");
+      thumbsBar.innerHTML = "";
+    }
   } else {
-    badgeContainer.innerHTML = `
-      <div id="modal-product-media-container" class="w-full h-full flex items-center justify-center">
-        <div id="modal-product-emoji" class="text-[7rem] sm:text-[8rem] select-none drop-shadow-[0_15px_30px_rgba(0,0,0,0.7)]">${p.emoji || '🍺'}</div>
-      </div>
-    `;
+    mainZone.innerHTML = `<div id="modal-product-emoji" class="absolute inset-0 flex items-center justify-center text-[7rem] sm:text-[8rem] select-none drop-shadow-[0_15px_30px_rgba(0,0,0,0.7)]">${p.emoji || '🍺'}</div>`;
+    thumbsBar.classList.add("hidden");
+    thumbsBar.innerHTML = "";
   }
   
   // Atualizar botão de ação do modal → agora é Fale Conosco (abre drawer)
@@ -625,47 +622,49 @@ function closeProductDetails() {
   window.location.hash = activeSection;
 }
 
-// Alternar imagem ativa no modal com efeito fade suave
+// Alternar mídia ativa no modal
 function changeModalActiveMedia(mediaSrc, thumbEl) {
-  const container = thumbEl.closest('[id="modal-product-badge"]') || document.querySelector('#detail-modal .relative');
-  const isVid = mediaSrc.startsWith("data:video") || /\.(mp4|webm|ogg)/.test(mediaSrc);
+  const mainZone = document.getElementById("modal-media-main");
+  if (!mainZone) return;
 
-  // Substituir o elemento de mídia principal
+  const isVid = mediaSrc.startsWith("data:video") || /\.(mp4|webm|ogg)/.test(mediaSrc);
   const oldMain = document.getElementById("modal-product-main-img");
-  if (oldMain) {
-    oldMain.style.opacity = 0;
-    setTimeout(() => {
-      if (isVid) {
-        const vid = document.createElement("video");
-        vid.id = "modal-product-main-img";
-        vid.src = mediaSrc;
-        vid.className = "absolute inset-0 w-full h-full object-cover transition-all duration-300";
-        vid.autoplay = true;
-        vid.muted = true;
-        vid.loop = true;
-        vid.setAttribute("playsinline", "");
-        vid.controls = true;
-        oldMain.replaceWith(vid);
-      } else {
-        const img = document.createElement("img");
-        img.id = "modal-product-main-img";
-        img.src = mediaSrc;
-        img.className = "absolute inset-0 w-full h-full object-cover transition-all duration-300 hover:scale-[1.03]";
-        img.style.opacity = 0;
-        oldMain.replaceWith(img);
-        setTimeout(() => { img.style.opacity = 1; }, 30);
-      }
-    }, 150);
-  }
+
+  if (oldMain) oldMain.style.opacity = "0";
+
+  setTimeout(() => {
+    if (isVid) {
+      const vid = document.createElement("video");
+      vid.id = "modal-product-main-img";
+      vid.src = mediaSrc;
+      vid.className = "absolute inset-0 w-full h-full object-cover transition-all duration-300";
+      vid.autoplay = true;
+      vid.muted = true;
+      vid.loop = true;
+      vid.setAttribute("playsinline", "");
+      vid.controls = true;
+      mainZone.innerHTML = "";
+      mainZone.appendChild(vid);
+    } else {
+      const img = document.createElement("img");
+      img.id = "modal-product-main-img";
+      img.src = mediaSrc;
+      img.className = "absolute inset-0 w-full h-full object-cover transition-all duration-300";
+      img.style.opacity = "0";
+      mainZone.innerHTML = "";
+      mainZone.appendChild(img);
+      setTimeout(() => { img.style.opacity = "1"; }, 30);
+    }
+  }, 150);
 
   // Atualizar estado ativo dos thumbnails
   if (thumbEl && thumbEl.parentNode) {
     thumbEl.parentNode.querySelectorAll("div[onclick]").forEach(el => {
-      el.classList.remove("border-amber-500", "ring-2", "ring-amber-500/30", "scale-105");
-      el.classList.add("border-neutral-700", "opacity-70");
+      el.classList.remove("border-amber-500", "ring-2", "ring-amber-500/40");
+      el.classList.add("border-neutral-700", "opacity-60");
     });
-    thumbEl.classList.remove("border-neutral-700", "opacity-70");
-    thumbEl.classList.add("border-amber-500", "ring-2", "ring-amber-500/30", "scale-105");
+    thumbEl.classList.remove("border-neutral-700", "opacity-60");
+    thumbEl.classList.add("border-amber-500", "ring-2", "ring-amber-500/40");
   }
 }
 
