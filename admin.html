@@ -693,21 +693,27 @@
           <textarea id="product-description" rows="2" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-amber-500 resize-none"></textarea>
         </div>
         <div>
-          <label class="block text-xs font-semibold uppercase text-neutral-400 tracking-wider mb-1">Foto do Produto</label>
-          <div class="flex items-center gap-4 mt-1">
-            <input type="file" id="product-image-file" accept="image/*" onchange="previewImage(this, 'product-image-preview')" class="hidden">
-            <label for="product-image-file" class="bg-neutral-800 border border-neutral-700 hover:bg-neutral-750 px-4 py-2.5 rounded-xl text-xs font-medium cursor-pointer transition text-white">
-              Escolher Foto
-            </label>
-            <button type="button" id="product-image-remove" onclick="removeImage('product-image-file', 'product-image-preview')" class="hidden bg-red-950/40 border border-red-900/60 hover:bg-red-900 text-red-400 hover:text-white px-4 py-2.5 rounded-xl text-xs font-medium transition">
-              Remover Foto
-            </button>
-            <div class="relative w-28 h-28 rounded-xl border border-neutral-800 overflow-hidden bg-neutral-950 flex items-center justify-center text-xs text-neutral-500">
-              <img id="product-image-preview" src="" class="hidden w-full h-full object-cover">
-              <span id="product-preview-placeholder">Preview</span>
+          <label class="block text-xs font-semibold uppercase text-neutral-400 tracking-wider mb-2">Mídia do Produto <span class="normal-case font-normal text-neutral-600">(fotos e vídeos)</span></label>
+
+          <!-- Zona Drag & Drop -->
+          <div id="product-media-dropzone"
+            class="relative border-2 border-dashed border-neutral-700 hover:border-amber-500/60 rounded-xl p-5 text-center cursor-pointer transition-all bg-neutral-900/40 hover:bg-neutral-800/40"
+            onclick="document.getElementById('product-media-file').click()"
+            ondragover="event.preventDefault(); this.classList.add('border-amber-500','bg-amber-500/5')"
+            ondragleave="this.classList.remove('border-amber-500','bg-amber-500/5')"
+            ondrop="handleMediaDrop(event)">
+            <input type="file" id="product-media-file" accept="image/*,video/*" multiple class="hidden" onchange="handleMediaFileSelect(this)">
+            <div class="flex flex-col items-center gap-2 pointer-events-none">
+              <svg class="h-8 w-8 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+              </svg>
+              <span class="text-xs text-neutral-400">Arraste fotos / vídeos aqui ou <span class="text-amber-500 font-medium">clique para escolher</span></span>
+              <span class="text-[10px] text-neutral-600">Fotos: até 15MB cada • Vídeos: até 10MB (curtos)</span>
             </div>
           </div>
-          <span id="product-image-size-info" class="text-[10px] text-neutral-500 mt-1 block"></span>
+
+          <!-- Grid de Miniaturas da Galeria -->
+          <div id="product-media-grid" class="hidden grid grid-cols-4 gap-2 mt-3"></div>
         </div>
         <div class="p-4 border-t border-neutral-800 flex justify-end gap-3 pt-4">
           <button type="button" onclick="closeProductModal()" class="px-5 py-2.5 border border-neutral-800 hover:bg-neutral-850 rounded-xl text-sm text-neutral-300 font-medium">Cancelar</button>
@@ -1098,7 +1104,95 @@
     }
 
     // ==========================================
-    // IMAGENS (PREVIEW E REMOÇÃO)
+    // GALERIA DE MÍDIA DO PRODUTO (fotos + vídeos)
+    // ==========================================
+    let productGallery = []; // array de { type: 'image'|'video', dataUrl: string }
+
+    function handleMediaDrop(event) {
+      event.preventDefault();
+      const dropzone = document.getElementById("product-media-dropzone");
+      dropzone.classList.remove("border-amber-500", "bg-amber-500/5");
+      const files = Array.from(event.dataTransfer.files).filter(f => f.type.startsWith("image/") || f.type.startsWith("video/"));
+      files.forEach(processMediaFile);
+    }
+
+    function handleMediaFileSelect(input) {
+      Array.from(input.files).forEach(processMediaFile);
+      input.value = ""; // resetar para permitir re-selecionar o mesmo arquivo
+    }
+
+    async function processMediaFile(file) {
+      const isImage = file.type.startsWith("image/");
+      const isVideo = file.type.startsWith("video/");
+      if (!isImage && !isVideo) return;
+
+      const MAX_VIDEO_MB = 10;
+      if (isVideo && file.size > MAX_VIDEO_MB * 1024 * 1024) {
+        alert(`Vídeo muito grande (${(file.size/1024/1024).toFixed(1)}MB). Máximo: ${MAX_VIDEO_MB}MB.\nUse vídeos curtos de alguns segundos.`);
+        return;
+      }
+
+      // Mostrar loading no grid
+      const grid = document.getElementById("product-media-grid");
+      grid.classList.remove("hidden");
+
+      if (isImage) {
+        try {
+          const compressed = await compressImage(file);
+          productGallery.push({ type: "image", dataUrl: compressed });
+        } catch {
+          const raw = await readFileAsDataUrl(file);
+          productGallery.push({ type: "image", dataUrl: raw });
+        }
+      } else {
+        const raw = await readFileAsDataUrl(file);
+        productGallery.push({ type: "video", dataUrl: raw });
+      }
+      renderGalleryGrid();
+    }
+
+    function readFileAsDataUrl(file) {
+      return new Promise((res, rej) => {
+        const reader = new FileReader();
+        reader.onload = e => res(e.target.result);
+        reader.onerror = rej;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderGalleryGrid() {
+      const grid = document.getElementById("product-media-grid");
+      if (productGallery.length === 0) { grid.classList.add("hidden"); grid.innerHTML = ""; return; }
+      grid.classList.remove("hidden");
+      grid.innerHTML = productGallery.map((item, idx) => {
+        const isCover = idx === 0;
+        const thumb = item.type === "image"
+          ? `<img src="${item.dataUrl}" class="absolute inset-0 w-full h-full object-cover rounded-lg">`
+          : `<video src="${item.dataUrl}" class="absolute inset-0 w-full h-full object-cover rounded-lg" muted playsinline></video>
+             <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+               <svg class="h-6 w-6 text-white drop-shadow" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+             </div>`;
+        return `
+          <div class="relative aspect-square rounded-lg overflow-hidden border ${isCover ? 'border-amber-500 ring-2 ring-amber-500/40' : 'border-neutral-700'} bg-neutral-900 group">
+            ${thumb}
+            ${isCover ? '<span class="absolute top-1 left-1 text-[8px] font-bold bg-amber-500 text-black px-1.5 py-0.5 rounded-full z-10">CAPA</span>' : ''}
+            <button type="button" onclick="removeGalleryItem(${idx})" class="absolute top-1 right-1 z-10 w-5 h-5 rounded-full bg-black/70 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition hover:bg-red-600">✕</button>
+          </div>`;
+      }).join("");
+    }
+
+    function removeGalleryItem(idx) {
+      productGallery.splice(idx, 1);
+      renderGalleryGrid();
+    }
+
+    function clearGallery() {
+      productGallery = [];
+      renderGalleryGrid();
+    }
+
+    // ==========================================
+    // IMAGENS (PREVIEW E REMOÇÃO) - mantido para categorias
     // ==========================================
     function previewImage(input, previewId) {
       const file = input.files[0];
@@ -1228,17 +1322,10 @@
       const modal = document.getElementById("product-modal");
       const form = document.getElementById("product-form");
       const title = document.getElementById("product-modal-title");
-      const removeBtn = document.getElementById("product-image-remove");
-      const preview = document.getElementById("product-image-preview");
-      const placeholder = document.getElementById("product-preview-placeholder");
-      
+
       form.reset();
       document.getElementById("product-id").value = "";
-      preview.src = "";
-      preview.classList.add("hidden");
-      preview.dataset.removed = "false";
-      placeholder.classList.remove("hidden");
-      removeBtn.classList.add("hidden");
+      clearGallery();
 
       if (id) {
         title.textContent = "Editar Bebida";
@@ -1247,21 +1334,22 @@
           document.getElementById("product-id").value = p.id;
           document.getElementById("product-name").value = p.name;
           document.getElementById("product-category").value = p.category;
-          document.getElementById("product-emoji").value = p.emoji || "🍺";
+          document.getElementById("product-emoji").value = p.emoji || "";
           document.getElementById("product-volume").value = p.size || p.volume || "";
           document.getElementById("product-pack").value = p.pack || "";
           document.getElementById("product-description").value = p.description || "";
-          
-          if (p.image) {
-            preview.src = p.image;
-            preview.classList.remove("hidden");
-            placeholder.classList.add("hidden");
-            removeBtn.classList.remove("hidden");
-          }
+
+          // Restaurar galeria existente
+          const existingMedia = p.gallery && p.gallery.length > 0 ? p.gallery : (p.image ? [p.image] : []);
+          existingMedia.forEach(url => {
+            const type = url.startsWith("data:video") || url.includes(".mp4") || url.includes(".webm") ? "video" : "image";
+            productGallery.push({ type, dataUrl: url });
+          });
+          renderGalleryGrid();
         }
       } else {
         title.textContent = "Nova Bebida";
-        document.getElementById("product-emoji").value = "🍺";
+        document.getElementById("product-emoji").value = "";
       }
 
       modal.classList.remove("hidden");
@@ -1269,20 +1357,19 @@
 
     function closeProductModal() {
       document.getElementById("product-modal").classList.add("hidden");
+      clearGallery();
     }
 
     async function saveProduct(e) {
       e.preventDefault();
-      
+
       const id = document.getElementById("product-id").value;
       const name = document.getElementById("product-name").value.trim();
       const category = document.getElementById("product-category").value;
-      const emoji = document.getElementById("product-emoji").value.trim() || "🍺";
+      const emoji = document.getElementById("product-emoji").value.trim() || "";
       const volume = document.getElementById("product-volume").value.trim();
       const pack = document.getElementById("product-pack").value.trim();
       const description = document.getElementById("product-description").value.trim();
-      const imageFileInput = document.getElementById("product-image-file");
-      const preview = document.getElementById("product-image-preview");
 
       if (!name) {
         alert("Digite o Nome do Produto antes de salvar.");
@@ -1294,16 +1381,18 @@
       const originalBtnText = saveBtn ? saveBtn.textContent : "Salvar";
       if (saveBtn) { saveBtn.textContent = "Salvando..."; saveBtn.disabled = true; }
 
-      let currentImageUrl = "";
-      if (id) {
-        const existing = dbProducts.find(p => p.id === id);
-        if (existing && preview.dataset.removed !== "true") {
-          currentImageUrl = existing.image || "";
-        }
-      }
-
       try {
-        const imageUrl = await uploadImageHelper(imageFileInput, currentImageUrl);
+        // A galeria já está em productGallery com dataUrls prontas
+        // Se galeria vazia e editando produto existente, manter a galeria anterior
+        let galleryUrls = productGallery.map(item => item.dataUrl);
+        if (galleryUrls.length === 0 && id) {
+          const existing = dbProducts.find(p => p.id === id);
+          if (existing) {
+            galleryUrls = existing.gallery || (existing.image ? [existing.image] : []);
+          }
+        }
+
+        const coverImage = galleryUrls[0] || "";
 
         const productData = {
           name: name,
@@ -1313,7 +1402,8 @@
           volume: volume,
           pack: pack || "",
           description: description || "",
-          image: imageUrl || ""
+          image: coverImage,
+          gallery: galleryUrls
         };
 
         if (isFirebaseActive) {
