@@ -191,7 +191,6 @@
             <div>
               <label class="block text-xs font-semibold uppercase text-neutral-400 tracking-wider mb-1">Título do Banner</label>
               <input type="text" id="edit-hero-title-inline" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-amber-500 font-sans">
-              <span class="text-[10px] text-neutral-500 block mt-1 font-sans">Use &lt;span class="text-amber-500 font-display"&gt;palavra&lt;/span&gt; para destacar em dourado.</span>
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase text-neutral-400 tracking-wider mb-1">Subtítulo do Banner</label>
@@ -698,7 +697,7 @@
             <button type="button" id="product-image-remove" onclick="removeImage('product-image-file', 'product-image-preview')" class="hidden bg-red-950/40 border border-red-900/60 hover:bg-red-900 text-red-400 hover:text-white px-4 py-2.5 rounded-xl text-xs font-medium transition">
               Remover Foto
             </button>
-            <div class="relative w-16 h-16 rounded-xl border border-neutral-800 overflow-hidden bg-neutral-950 flex items-center justify-center text-xs text-neutral-500">
+            <div class="relative w-28 h-28 rounded-xl border border-neutral-800 overflow-hidden bg-neutral-950 flex items-center justify-center text-xs text-neutral-500">
               <img id="product-image-preview" src="" class="hidden w-full h-full object-cover">
               <span id="product-preview-placeholder">Preview</span>
             </div>
@@ -748,7 +747,7 @@
             <button type="button" id="category-image-remove" onclick="removeImage('category-image-file', 'category-image-preview')" class="hidden bg-red-950/40 border border-red-900/60 hover:bg-red-900 text-red-400 hover:text-white px-4 py-2.5 rounded-xl text-xs font-medium transition">
               Remover Foto
             </button>
-            <div class="relative w-16 h-16 rounded-xl border border-neutral-800 overflow-hidden bg-neutral-950 flex items-center justify-center text-xs text-neutral-500">
+            <div class="relative w-28 h-28 rounded-xl border border-neutral-800 overflow-hidden bg-neutral-950 flex items-center justify-center text-xs text-neutral-500">
               <img id="category-image-preview" src="" class="hidden w-full h-full object-cover">
               <span id="category-preview-placeholder">Preview</span>
             </div>
@@ -1085,35 +1084,19 @@
       const file = fileInput.files[0];
       if (!file) return fallbackUrl;
 
-      if (isFirebaseActive) {
-        try {
-          const fileRef = storage.ref().child(`fotos/${Date.now()}_${file.name}`);
-          const snapshot = await fileRef.put(file);
-          return await snapshot.ref.getDownloadURL();
-        } catch (storageError) {
-          console.warn("Firebase Storage indisponível (plano Spark ou erro). Usando fallback de imagem comprimida Base64 no Firestore...", storageError);
-          try {
-            return await compressImage(file);
-          } catch (compressErr) {
-            console.error("Erro ao comprimir imagem:", compressErr);
-            return new Promise((resolve) => {
-              const reader = new FileReader();
-              reader.onload = (e) => resolve(e.target.result);
-              reader.readAsDataURL(file);
-            });
-          }
-        }
-      } else {
-        try {
-          return await compressImage(file);
-        } catch (compressErr) {
-          console.error("Erro ao comprimir imagem local:", compressErr);
-          return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target.result);
-            reader.readAsDataURL(file);
-          });
-        }
+      // Sempre usar Base64 comprimido (Firebase Storage requer plano Blaze).
+      // A imagem comprimida é salva diretamente no Firestore como string.
+      try {
+        return await compressImage(file);
+      } catch (compressErr) {
+        console.error("Erro ao comprimir imagem:", compressErr);
+        // Fallback final: lê o arquivo bruto sem compressão
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.onerror = (e) => reject(e);
+          reader.readAsDataURL(file);
+        });
       }
     }
 
@@ -1182,6 +1165,16 @@
       const imageFileInput = document.getElementById("product-image-file");
       const preview = document.getElementById("product-image-preview");
 
+      if (!name) {
+        alert("Digite o Nome do Produto antes de salvar.");
+        return;
+      }
+
+      // Mostrar loading no botão
+      const saveBtn = e.target.querySelector('[type="submit"]');
+      const originalBtnText = saveBtn ? saveBtn.textContent : "Salvar";
+      if (saveBtn) { saveBtn.textContent = "Salvando..."; saveBtn.disabled = true; }
+
       let currentImageUrl = "";
       if (id) {
         const existing = dbProducts.find(p => p.id === id);
@@ -1199,17 +1192,16 @@
           emoji: emoji,
           size: volume,
           volume: volume,
-          pack: pack,
-          description: description,
-          image: imageUrl
+          pack: pack || "",
+          description: description || "",
+          image: imageUrl || ""
         };
 
         if (isFirebaseActive) {
-          const fs = firebase.firestore();
           if (id) {
-            await fs.collection("products").doc(id).update(productData);
+            await firebase.firestore().collection("products").doc(id).update(productData);
           } else {
-            await fs.collection("products").add(productData);
+            await firebase.firestore().collection("products").add(productData);
           }
         } else {
           // LocalStorage Fallback
@@ -1226,8 +1218,10 @@
 
         closeProductModal();
       } catch (err) {
-        console.error(err);
-        alert("Erro ao salvar bebida: " + err.message);
+        console.error("saveProduct ERRO:", err);
+        alert("Erro ao salvar bebida!\n" + (err.message || String(err)));
+      } finally {
+        if (saveBtn) { saveBtn.textContent = originalBtnText; saveBtn.disabled = false; }
       }
     }
 
@@ -1305,6 +1299,16 @@
       const imageFileInput = document.getElementById("category-image-file");
       const preview = document.getElementById("category-image-preview");
 
+      if (!name) {
+        alert("Digite o Nome da Categoria antes de salvar.");
+        return;
+      }
+
+      // Mostrar loading no botão
+      const saveBtn = e.target.querySelector('[type="submit"]');
+      const originalBtnText = saveBtn ? saveBtn.textContent : "Salvar";
+      if (saveBtn) { saveBtn.textContent = "Salvando..."; saveBtn.disabled = true; }
+
       let currentImageUrl = "";
       if (id) {
         const existing = dbCategories.find(c => c.slug === id);
@@ -1318,15 +1322,14 @@
 
         const categoryData = {
           name: name,
-          emoji: emoji,
-          tagline: tagline,
-          image: imageUrl
+          emoji: emoji || "",
+          tagline: tagline || "",
+          image: imageUrl || ""
         };
 
         if (isFirebaseActive) {
-          const fs = firebase.firestore();
           const docId = id || name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-          await fs.collection("categories").doc(docId).set(categoryData, { merge: true });
+          await firebase.firestore().collection("categories").doc(docId).set(categoryData, { merge: true });
         } else {
           // LocalStorage Fallback
           if (id) {
@@ -1342,8 +1345,10 @@
 
         closeCategoryModal();
       } catch (err) {
-        console.error(err);
-        alert("Erro ao salvar categoria: " + err.message);
+        console.error("saveCategory ERRO:", err);
+        alert("Erro ao salvar categoria!\n" + (err.message || String(err)));
+      } finally {
+        if (saveBtn) { saveBtn.textContent = originalBtnText; saveBtn.disabled = false; }
       }
     }
 
@@ -1376,7 +1381,11 @@
       if (type === "hero") {
         document.getElementById("hero-display-content").classList.add("hidden");
         document.getElementById("hero-edit-btn").classList.add("hidden");
-        document.getElementById("edit-hero-title-inline").value = settings.heroTitle;
+        // Strip HTML tags para mostrar só o texto limpo no campo de edição
+        const heroRaw = settings.heroTitle || "";
+        const tmp = document.createElement("div");
+        tmp.innerHTML = heroRaw;
+        document.getElementById("edit-hero-title-inline").value = tmp.textContent || tmp.innerText || heroRaw;
         document.getElementById("edit-hero-subtitle-inline").value = settings.heroSubtitle;
         document.getElementById("hero-edit-form").classList.remove("hidden");
       } else if (type === "cta") {
