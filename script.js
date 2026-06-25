@@ -427,22 +427,24 @@ function renderAll() {
 function renderProductCard(p) {
   const t = getT();
   const mediaHtml = p.image
-    ? `<img src="${p.image}" class="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-105 filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]" alt="${p.name}">`
+    ? `<img src="${p.image}" class="w-full h-full object-contain p-3 transition-transform duration-500 group-hover:scale-105 filter drop-shadow-[0_8px_24px_rgba(0,0,0,0.55)]" alt="${p.name}">`
     : `<div class="text-7xl transition-transform group-hover:scale-110 drop-shadow-[0_8px_30px_rgba(0,0,0,0.6)]">${p.emoji}</div>`;
+
+  const sizeLabel = p.size || p.volume || "";
 
   return `
     <div class="card-tile card-tile-hover flex flex-col overflow-hidden group" data-aos="fade-up">
-      <div onclick="openProductDetails('${p.id}')" class="cursor-pointer relative aspect-square overflow-hidden bg-gradient-to-br from-amber-500/10 via-neutral-800 to-neutral-900 flex items-center justify-center">
+      <div onclick="openProductDetails('${p.id}')" class="cursor-pointer relative aspect-square overflow-hidden bg-gradient-to-br from-neutral-800 via-neutral-850 to-neutral-900 flex items-center justify-center">
         ${mediaHtml}
       </div>
       <div class="flex flex-1 flex-col p-4">
         <div onclick="openProductDetails('${p.id}')" class="cursor-pointer font-semibold text-white hover:text-amber-500 transition-colors">
           ${p.name}
         </div>
-        <div class="text-xs text-gray-400 mt-0.5">${p.size}</div>
-        <button onclick="consultProduct('${p.id}')" class="mt-6 w-full inline-flex items-center justify-center gap-2 rounded-lg bg-whats px-3 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity">
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-          Consultar no WhatsApp
+        ${sizeLabel ? `<div class="text-xs text-gray-400 mt-0.5">${sizeLabel}</div>` : ""}
+        <button onclick="openProductDetails('${p.id}')" class="mt-auto pt-4 w-full inline-flex items-center justify-center gap-2 rounded-lg bg-neutral-700 hover:bg-amber-500 hover:text-black px-3 py-2 text-sm font-medium text-white transition-colors">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          Ver mais
         </button>
       </div>
     </div>
@@ -591,15 +593,15 @@ function openProductDetails(id) {
     `;
   }
   
-  // Atualizar botão de consulta
+  // Atualizar botão de ação do modal → agora é Fale Conosco (abre drawer)
   actionBtn.innerHTML = `
     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-    Consultar no WhatsApp
+    Fale Conosco
   `;
 
   actionBtn.onclick = () => {
-    consultProduct(p.id);
     closeProductDetails();
+    openContactModal();
   };
 
   // Exibir Modal
