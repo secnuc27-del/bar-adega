@@ -573,24 +573,22 @@ function openProductDetails(id) {
     let galleryHtml = "";
     if (p.gallery && p.gallery.length > 1) {
       galleryHtml = `
-        <div class="absolute bottom-3 left-0 right-0 flex justify-center gap-2 z-10 px-4">
+        <div class="absolute bottom-0 left-0 right-0 flex justify-center gap-2 z-10 px-4 py-3 bg-gradient-to-t from-black/70 to-transparent">
           ${p.gallery.map((img, idx) => `
-            <img src="${img}" onclick="event.stopPropagation(); changeModalActiveImage('${img}', this)" class="w-12 h-12 rounded-lg border-2 bg-neutral-900/80 p-0.5 cursor-pointer object-cover transition-all hover:border-amber-500 ${idx === 0 ? 'border-amber-500 ring-2 ring-amber-500/30 scale-105' : 'border-neutral-700'}" alt="miniatura ${idx + 1}">
+            <img src="${img}" onclick="event.stopPropagation(); changeModalActiveImage('${img}', this)" class="w-14 h-14 rounded-lg border-2 bg-neutral-900/80 cursor-pointer object-cover transition-all hover:border-amber-500 ${idx === 0 ? 'border-amber-500 ring-2 ring-amber-500/30 scale-105' : 'border-neutral-700 opacity-70 hover:opacity-100'}" alt="miniatura ${idx + 1}">
           `).join("")}
         </div>
       `;
     }
     
     badgeContainer.innerHTML = `
-      <div id="modal-product-media-container" class="w-full h-full flex items-center justify-center p-4 ${galleryHtml ? 'pb-20' : ''}">
-        <img id="modal-product-main-img" src="${p.image}" class="max-h-[220px] md:max-h-[350px] max-w-[90%] object-contain filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.6)] transition-all duration-300 hover:scale-[1.02]" alt="${p.name}">
-      </div>
+      <img id="modal-product-main-img" src="${p.image}" class="absolute inset-0 w-full h-full object-cover transition-all duration-300 hover:scale-[1.03]" alt="${p.name}">
       ${galleryHtml}
     `;
   } else {
     badgeContainer.innerHTML = `
       <div id="modal-product-media-container" class="w-full h-full flex items-center justify-center">
-        <div id="modal-product-emoji" class="text-[7rem] sm:text-[8rem] select-none drop-shadow-[0_15px_30px_rgba(0,0,0,0.7)]">${p.emoji}</div>
+        <div id="modal-product-emoji" class="text-[7rem] sm:text-[8rem] select-none drop-shadow-[0_15px_30px_rgba(0,0,0,0.7)]">${p.emoji || '🍺'}</div>
       </div>
     `;
   }
@@ -632,9 +630,9 @@ function changeModalActiveImage(imgSrc, thumbEl) {
   if (thumbEl && thumbEl.parentNode) {
     thumbEl.parentNode.querySelectorAll("img").forEach(el => {
       el.classList.remove("border-amber-500", "ring-2", "ring-amber-500/30", "scale-105");
-      el.classList.add("border-neutral-700");
+      el.classList.add("border-neutral-700", "opacity-70");
     });
-    thumbEl.classList.remove("border-neutral-700");
+    thumbEl.classList.remove("border-neutral-700", "opacity-70");
     thumbEl.classList.add("border-amber-500", "ring-2", "ring-amber-500/30", "scale-105");
   }
 }
