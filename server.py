@@ -46,7 +46,7 @@ BLOCKED_PATH_PATTERNS = [
     '.zip', '.tar', '.gz', '.rar', '.7z',
     '.log', '.cache',
     'backup', 'backups', 'dump', 'dumps',
-    'admin', 'wp-admin', 'phpmyadmin', 'adminer',
+    'wp-admin', 'phpmyadmin', 'adminer',
     'config', 'configs', 'secret', 'secrets', 'private',
     'api/admin', 'api/internal', 'api/debug',
     '.well-known/security.txt',

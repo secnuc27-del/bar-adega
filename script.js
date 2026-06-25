@@ -120,25 +120,68 @@
 
 })();
 
-// Configuração de Contato da Adega
-const WHATSAPP_NUMBER = "5568999606407";
-const INSTAGRAM_URL = "https://instagram.com/adega_imperialbr";
+// Configuração de Contato da Adega (Configurações dinâmicas mescladas do Firebase ou Local)
+let dbSettings = null;
 
 // Estado Global da Aplicação (Travado em Português)
 const currentLang = "pt";
 let activeSection = "home";
 let selectedCategory = "todos";
 
-// Carregar dicionário do languages.js
-const getT = () => translations[currentLang];
+// Dados dinâmicos do Firebase ou LocalStorage (povoado ao iniciar)
+let dbCategories = [];
+let dbProducts = [];
+
+// Definições de Configurações Padrões do Site
+function getDefaultSettings() {
+  return {
+    whatsapp: "5568999606407",
+    instagram: "https://instagram.com/adega_imperialbr",
+    facebook: "https://www.facebook.com/share/183EcLi9B7/",
+    email: "distribuidoraimperialltda23@gmail.com",
+    phone: "+55 (68) 99960-6407",
+    address: "R. Manoel Ribeiro, 378, Brasiléia - AC, 69932-000",
+    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1646.628658339697!2d-68.74381615712065!3d-11.011214863293956!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x917eb73425e0aa55%3A0x74df61a231e107a3!2sR.%20Manoel%20Ribeiro%2C%20378%2C%20Brasil%C3%A9ia%20-%20AC%2C%2069932-000!5e0!3m2!1spt-BR!2sbr!4v1782336464088!5m2!1spt-BR!2sbr",
+    hoursVal: "Seg–Dom · 10h às 02h",
+    heroTitle: "Bebidas <span class='text-amber-500 font-display'>estupidamente</span> geladas.",
+    heroSubtitle: "Confira nossa seleção exclusiva de cervejas e destilados selecionados. Consulte a disponibilidade pelo WhatsApp.",
+    ctaTitle: "Pediu, chegou gelado.",
+    ctaSubtitle: "Chame no WhatsApp, monte seu pedido e a gente entrega rapidinho com aquela cerveja no ponto certo.",
+    aboutText: "A Adega Imperial é a sua vitrine virtual definitiva de bebidas geladas e destilados selecionados na região.\n\nNosso objetivo principal é apresentar um catálogo interativo, organizado e premium, ajudando você a escolher a bebida ideal para qualquer momento.\n\nNão efetuamos transações financeiras ou pagamentos diretamente no site. Toda a consulta de preços, verificação de estoque e finalização de pedidos ocorre de forma rápida e segura no contato humano e direto via WhatsApp.",
+    termsText: "1. Caráter Informativo: Este site funciona exclusivamente como um catálogo ou vitrine online de produtos. Nenhuma compra é processada diretamente pelo nosso site.\n\n2. Preços e Estoque: Os preços, disponibilidade e condições das bebidas mostradas estão sujeitos a alterações e devem ser confirmados com o nosso atendimento no WhatsApp.\n\n3. Menores de 18 Anos: A venda e o consumo de bebidas alcoólicas são expressamente proibidos para menores de 18 anos. Ao navegar pela vitrine, você confirma ser maior de idade.",
+    privacyText: "Sua privacidade é levada a sério. A nossa vitrine virtual:\n\n• Não coleta dados pessoais: Não solicitamos dados de identificação, localização permanente ou documentos durante a navegação comum.\n\n• Sem transações locais: Não processamos pagamentos em nosso servidor, logo nenhuma informação financeira é armazenada.\n\n• Links Externos: Os contatos ocorrem fora do site (no WhatsApp e Instagram). Recomendamos que verifique as políticas de privacidade destas plataformas de terceiros."
+  };
+}
+
+// Carregar dicionário do languages.js com injeção de dados dinâmicos
+const getT = () => {
+  const t = translations[currentLang];
+  
+  // Sobrescrever com configurações salvas
+  const settings = dbSettings || getDefaultSettings();
+  t.heroTitle = settings.heroTitle;
+  t.heroSubtitle = settings.heroSubtitle;
+  t.ctaTitle = settings.ctaTitle;
+  t.ctaSubtitle = settings.ctaSubtitle;
+  t.infoAddressVal = settings.address;
+  t.infoHoursVal = settings.hoursVal;
+  
+  if (dbCategories && dbCategories.length > 0) {
+    t.categoriesData = dbCategories;
+  }
+  if (dbProducts && dbProducts.length > 0) {
+    t.productsData = dbProducts;
+  }
+  return t;
+};
 
 
 // Inicialização
 document.addEventListener("DOMContentLoaded", () => {
   initRouter();
   
-  // Renderizar o site inicialmente
-  renderAll();
+  // Inicializar conexão com o banco de dados (Firebase ou Local)
+  initClientDatabase();
   
   // Se o hash inicial da URL for um produto (ex: #produto/skol-lata)
   handleInitialProductHash();
@@ -312,7 +355,11 @@ function renderAll() {
   const featuredContainer = document.getElementById("featured-products-grid");
   if (featuredContainer) {
     // Exibir produtos com fotos reais como destaques
-    const featuredList = t.productsData.filter(p => ["heineken", "campari", "amstel", "brahma"].includes(p.id));
+    // Exibir produtos selecionados como destaques (ou os 4 primeiros caso os padrões não existam)
+    let featuredList = t.productsData.filter(p => ["heineken", "campari", "amstel", "brahma"].includes(p.id));
+    if (featuredList.length === 0 && t.productsData.length > 0) {
+      featuredList = t.productsData.slice(0, 4);
+    }
     featuredContainer.innerHTML = featuredList.map(p => renderProductCard(p)).join("");
   }
 
@@ -322,6 +369,52 @@ function renderAll() {
 
   // 6. Renderizar Página de Contato
   renderContactPage();
+
+  // 7. Atualizar Redes Sociais, Mapas e Links de Contato Dinamicamente
+  const settings = dbSettings || getDefaultSettings();
+  const waNumber = settings.whatsapp;
+  const instaUrl = settings.instagram;
+  const fbUrl = settings.facebook;
+  const emailAddr = settings.email;
+  const phoneVal = settings.phone;
+  const mapUrl = settings.mapUrl;
+
+  // WhatsApp links
+  document.querySelectorAll('a[href*="wa.me"]').forEach(el => {
+    let msg = "Olá!";
+    try {
+      const url = new URL(el.href);
+      msg = url.searchParams.get("text") || "Olá!";
+    } catch (e) {}
+    el.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`;
+  });
+
+  // Instagram links
+  document.querySelectorAll('a[href*="instagram.com"]').forEach(el => {
+    el.href = instaUrl;
+  });
+
+  // Facebook links
+  document.querySelectorAll('a[href*="facebook.com"]').forEach(el => {
+    el.href = fbUrl;
+  });
+
+  // E-mail links
+  document.querySelectorAll('a[href^="mailto:"]').forEach(el => {
+    el.href = `mailto:${emailAddr}`;
+  });
+
+  // Telefone links
+  document.querySelectorAll('a[href^="tel:"], .phone-link').forEach(el => {
+    el.href = `tel:${phoneVal.replace(/[^0-9+]/g, "")}`;
+    el.textContent = phoneVal;
+  });
+
+  // Mapa Iframe
+  const mapIframe = document.querySelector('iframe[title="Mapa"]');
+  if (mapIframe && mapUrl) {
+    mapIframe.src = mapUrl;
+  }
 
   if (window.AOS) {
     setTimeout(() => {
@@ -377,7 +470,7 @@ function renderCatalogFilters() {
   filtersHtml += t.categoriesData.map(c => {
     const iconHtml = c.image 
       ? `<img src="${c.image}" class="w-5 h-5 rounded-full object-cover" alt="">`
-      : c.emoji;
+      : (c.emoji || '🍺');
       
     return `
       <button onclick="filterCatalog('${c.slug}')" class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm transition ${selectedCategory === c.slug ? activeClass : inactiveClass}">
@@ -561,7 +654,9 @@ function consultProduct(id) {
   const p = t.productsData.find(x => x.id === id);
   if (!p) return;
   const message = `Olá, gostaria de consultar o preço da bebida: *${p.name}* (${p.size})!`;
-  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  const settings = dbSettings || getDefaultSettings();
+  const waNumber = settings.whatsapp;
+  const url = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
   window.open(url, "_blank");
 }
 
@@ -634,32 +729,20 @@ function openInfoModal(type) {
   const modal = document.getElementById("info-modal");
   const titleEl = document.getElementById("info-modal-title");
   const bodyEl = document.getElementById("info-modal-body");
+  const settings = dbSettings || getDefaultSettings();
   
   if (type === "sobre") {
     titleEl.textContent = "Sobre Nós";
-    bodyEl.innerHTML = `
-      <p>A <strong>Adega Imperial</strong> é a sua vitrine virtual definitiva de bebidas geladas e destilados selecionados na região.</p>
-      <p>Nosso objetivo principal é apresentar um catálogo interativo, organizado e premium, ajudando você a escolher a bebida ideal para qualquer momento.</p>
-      <p>Não efetuamos transações financeiras ou pagamentos diretamente no site. Toda a consulta de preços, verificação de estoque e finalização de pedidos ocorre de forma rápida e segura no contato humano e direto via WhatsApp.</p>
-      <p class="pt-2 border-t border-neutral-800 text-xs text-gray-500">Desenvolvido por <strong>Kaelvora Studios</strong>. Qualquer dúvida sobre a plataforma, entre em contato com a empresa responsável pelo e-mail: <a href="mailto:kaelvorastudios2026@gmail.com" class="text-amber-500 hover:underline">kaelvorastudios2026@gmail.com</a>.</p>
-    `;
+    bodyEl.innerHTML = settings.aboutText.split("\n\n").map(p => `<p class="mb-4">${p.replace(/\n/g, "<br>")}</p>`).join("") + 
+      `<p class="pt-2 border-t border-neutral-800 text-xs text-gray-500">Desenvolvido por <strong>Kaelvora Studios</strong>. Qualquer dúvida sobre a plataforma, entre em contato com a empresa responsável pelo e-mail: <a href="mailto:kaelvorastudios2026@gmail.com" class="text-amber-500 hover:underline">kaelvorastudios2026@gmail.com</a>.</p>`;
   } else if (type === "termos") {
     titleEl.textContent = "Termos de Uso";
-    bodyEl.innerHTML = `
-      <p><strong>1. Caráter Informativo:</strong> Este site funciona exclusivamente como um catálogo ou vitrine online de produtos. Nenhuma compra é processada diretamente pelo nosso site.</p>
-      <p><strong>2. Preços e Estoque:</strong> Os preços, disponibilidade e condições das bebidas mostradas estão sujeitos a alterações e devem ser confirmados com o nosso atendimento no WhatsApp.</p>
-      <p><strong>3. Menores de 18 Anos:</strong> A venda e o consumo de bebidas alcoólicas são expressamente proibidos para menores de 18 anos. Ao navegar pela vitrine, você confirma ser maior de idade.</p>
-      <p class="pt-2 border-t border-neutral-800 text-xs text-gray-500">Plataforma desenvolvida por <strong>Kaelvora Studios</strong>. Qualquer dúvida sobre os termos ou funcionamento do site, entre em contato com a empresa responsável pelo e-mail: <a href="mailto:kaelvorastudios2026@gmail.com" class="text-amber-500 hover:underline">kaelvorastudios2026@gmail.com</a>.</p>
-    `;
+    bodyEl.innerHTML = settings.termsText.split("\n\n").map(p => `<p class="mb-4">${p.replace(/\n/g, "<br>")}</p>`).join("") +
+      `<p class="pt-2 border-t border-neutral-800 text-xs text-gray-500">Plataforma desenvolvida por <strong>Kaelvora Studios</strong>. Qualquer dúvida sobre os termos ou funcionamento do site, entre em contato com a empresa responsável pelo e-mail: <a href="mailto:kaelvorastudios2026@gmail.com" class="text-amber-500 hover:underline">kaelvorastudios2026@gmail.com</a>.</p>`;
   } else if (type === "privacidade") {
     titleEl.textContent = "Política de Privacidade";
-    bodyEl.innerHTML = `
-      <p>Sua privacidade é levada a sério. A nossa vitrine virtual:</p>
-      <p><strong>• Não coleta dados pessoais:</strong> Não solicitamos dados de identificação, localização permanente ou documentos durante a navegação comum.</p>
-      <p><strong>• Sem transações locais:</strong> Não processamos pagamentos em nosso servidor, logo nenhuma informação financeira é armazenada.</p>
-      <p><strong>• Links Externos:</strong> Os contatos ocorrem fora do site (no WhatsApp e Instagram). Recomendamos que verifique as políticas de privacidade destas plataformas de terceiros.</p>
-      <p class="pt-2 border-t border-neutral-800 text-xs text-gray-500">Desenvolvido por <strong>Kaelvora Studios</strong>. Qualquer dúvida sobre privacidade ou tratamento de informações, entre em contato com a empresa responsável pelo e-mail: <a href="mailto:kaelvorastudios2026@gmail.com" class="text-amber-500 hover:underline">kaelvorastudios2026@gmail.com</a>.</p>
-    `;
+    bodyEl.innerHTML = settings.privacyText.split("\n\n").map(p => `<p class="mb-4">${p.replace(/\n/g, "<br>")}</p>`).join("") +
+      `<p class="pt-2 border-t border-neutral-800 text-xs text-gray-500">Desenvolvido por <strong>Kaelvora Studios</strong>. Qualquer dúvida sobre privacidade ou tratamento de informações, entre em contato com a empresa responsável pelo e-mail: <a href="mailto:kaelvorastudios2026@gmail.com" class="text-amber-500 hover:underline">kaelvorastudios2026@gmail.com</a>.</p>`;
   }
   
   modal.classList.add("open");
@@ -668,4 +751,94 @@ function openInfoModal(type) {
 // Fechar modal de informações
 function closeInfoModal() {
   document.getElementById("info-modal").classList.remove("open");
+}
+
+// Inicialização do Banco de Dados no Cliente (Firebase ou LocalStorage)
+function initClientDatabase() {
+  const config = window.firebaseConfig;
+  const DEFAULT_KEYS = ["SUA_API_KEY", "SEU_PROJECT_ID"];
+  const hasFirebaseKeys = config && 
+    config.apiKey && 
+    !DEFAULT_KEYS.includes(config.apiKey) && 
+    config.projectId && 
+    !DEFAULT_KEYS.includes(config.projectId);
+
+  if (hasFirebaseKeys) {
+    try {
+      // Inicializar Firebase
+      firebase.initializeApp(config);
+      const db = firebase.firestore();
+
+      // Listener de Configurações
+      db.collection("settings").doc("general").onSnapshot((doc) => {
+        if (doc.exists) {
+          dbSettings = doc.data();
+        } else {
+          dbSettings = getDefaultSettings();
+        }
+        renderAll();
+      });
+
+      // Listener de Categorias
+      db.collection("categories").onSnapshot((snapshot) => {
+        dbCategories = [];
+        snapshot.forEach((doc) => {
+          dbCategories.push({ slug: doc.id, ...doc.data() });
+        });
+        
+        if (dbCategories.length === 0) {
+          dbCategories = [...translations[currentLang].categoriesData];
+        }
+        renderAll();
+      });
+
+      // Listener de Produtos
+      db.collection("products").onSnapshot((snapshot) => {
+        dbProducts = [];
+        snapshot.forEach((doc) => {
+          dbProducts.push({ id: doc.id, ...doc.data() });
+        });
+        
+        if (dbProducts.length === 0) {
+          dbProducts = [...translations[currentLang].productsData];
+        }
+        renderAll();
+      });
+    } catch (err) {
+      console.error("Erro ao inicializar Firebase no cliente:", err);
+      loadLocalStorageClient();
+    }
+  } else {
+    loadLocalStorageClient();
+  }
+}
+
+function loadLocalStorageClient() {
+  const localCats = localStorage.getItem("_local_categories");
+  const localProds = localStorage.getItem("_local_products");
+  const localSettings = localStorage.getItem("_local_settings");
+
+  // Garantir carregamento ou inicialização com padrões
+  if (localCats) {
+    dbCategories = JSON.parse(localCats);
+  } else {
+    dbCategories = [...translations[currentLang].categoriesData];
+    localStorage.setItem("_local_categories", JSON.stringify(dbCategories));
+  }
+
+  if (localProds) {
+    dbProducts = JSON.parse(localProds);
+  } else {
+    dbProducts = [...translations[currentLang].productsData];
+    localStorage.setItem("_local_products", JSON.stringify(dbProducts));
+  }
+
+  if (localSettings) {
+    dbSettings = JSON.parse(localSettings);
+  } else {
+    dbSettings = getDefaultSettings();
+    localStorage.setItem("_local_settings", JSON.stringify(dbSettings));
+  }
+  
+  renderAll();
 }

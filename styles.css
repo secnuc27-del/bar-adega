@@ -41,6 +41,8 @@ html {
   /* Previne zoom automático de fonte ao girar iPhone */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 body {
@@ -56,6 +58,7 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  max-width: 100%;
 }
 
 h1, h2, h3, .font-display {
