@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#171309">
+  <title>Adega Imperial — Bebidas geladas com entrega rápida</title>
+  <meta name="description" content="Catálogo online de cervejas e destilados da Adega Imperial. Consulte nossa variedade e preços no WhatsApp.">
+  
+  <!-- Tailwind CSS Play CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            whats: {
+              DEFAULT: '#25D366',
+              foreground: '#FFFFFF'
+            }
+          },
+          fontFamily: {
+            display: ['Bebas Neue', 'Oswald', 'sans-serif'],
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Animate.css & AOS (Animate on Scroll) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <header class="border-b border-neutral-800 bg-neutral-900">
+    <div class="container-x flex h-16 items-center justify-between gap-4">
+      <a href="#home" data-target="home" class="flex items-center gap-2">
+        <img src="assets/adega-imperial-transparente.png" alt="Adega Imperial" class="h-10 sm:h-12 w-auto object-contain drop-shadow-[0_0_8px_rgba(245,158,11,0.35)] transition-transform hover:scale-105">
+      </a>
+
+      <!-- Navegação Principal (Desktop) -->
+      <nav class="hidden md:flex items-center gap-1">
+        <a href="#home" data-target="home" class="nav-link nav-active" data-i18n="navHome">Início</a>
+        <a href="#catalog" data-target="catalog" class="nav-link text-gray-400" data-i18n="navCategories">Bebidas</a>
+        <a href="#contact" data-target="contact" class="nav-link text-gray-400" data-i18n="navContact">Contato</a>
+      </nav>
+
+      <!-- Controles de Fale Conosco -->
+      <div class="flex items-center gap-3">
+        <!-- Botão Fale Conosco -->
+        <button onclick="openContactModal()" class="hidden sm:inline-flex items-center gap-2 rounded-full bg-amber-500 px-5 py-2 text-sm font-semibold text-black hover:bg-amber-600 transition-colors">
+          Fale Conosco
+        </button>
+
+        <!-- Menu Hamburger Mobile -->
+        <button onclick="toggleMobileMenu()" class="md:hidden p-2 text-gray-400 hover:text-white" aria-label="menu">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Menu de Navegação Mobile (Expansível) -->
+    <div id="mobile-menu" class="hidden md:hidden border-t border-neutral-800 bg-neutral-900">
+      <div class="container-x py-3 flex flex-col gap-2">
+        <a href="#home" data-target="home" class="nav-link nav-active py-2 text-sm" data-i18n="navHome">Início</a>
+        <a href="#catalog" data-target="catalog" class="nav-link py-2 text-sm text-gray-400" data-i18n="navCategories">Bebidas</a>
+        <a href="#contact" data-target="contact" class="nav-link py-2 text-sm text-gray-400" data-i18n="navContact">Contato</a>
+        <button onclick="openContactModal()" class="mt-2 w-full inline-flex items-center justify-center gap-2 rounded-full bg-amber-500 px-4 py-2.5 text-sm font-semibold text-black hover:bg-amber-600 transition-colors">
+          Fale Conosco
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO PRINCIPAL (SPA) -->
+  <main class="flex-1">
+
+    <!-- SEÇÃO: INÍCIO (Home) -->
+    <section id="section-home" class="hidden">
+      <!-- Hero Banner -->
+      <div class="container-x grid lg:grid-cols-2 gap-10 py-16 lg:py-24 items-center">
+        <div data-aos="fade-right" class="flex flex-col items-start justify-center h-full">
+          <h1 class="font-display text-4xl xs:text-5xl sm:text-6xl lg:text-7xl leading-[0.95] text-white" data-i18n="heroTitle">
+            Bebida <span class="text-amber-500">estupidamente</span> gelada na sua porta.
+          </h1>
+          <p class="mt-5 text-base sm:text-lg text-gray-300 max-w-lg leading-relaxed" data-i18n="heroSubtitle">
+            Cervejas e destilados para qualquer ocasião. Adicione à lista e consulte os preços pelo WhatsApp.
+          </p>
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a href="#catalog" data-target="catalog" class="inline-flex items-center gap-2 rounded-full bg-amber-500 px-6 py-3 font-medium text-black hover:bg-amber-600 transition shadow-glow" data-i18n="viewDrinks">
+              Ver bebidas
+            </a>
+            <button onclick="openContactModal()" class="inline-flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-950/40 px-6 py-3 font-medium hover:bg-neutral-800 transition text-white">
+              <svg class="h-5 w-5 text-whats" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+              <span data-i18n="orderNow">Fale Conosco</span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Imagem Ilustrativa (Hero Image) -->
+        <div class="relative flex justify-center w-full max-w-lg" data-aos="fade-left">
+          <div class="absolute -inset-6 bg-emerald-600/15 blur-3xl rounded-[3rem]"></div>
+          <img src="../fotos/slkop.jpg" alt="Adega Imperial Logo" class="relative rounded-3xl border border-neutral-800/80 shadow-2xl object-cover aspect-[4/3] w-full select-none transition-transform duration-500 hover:scale-[1.01]" />
+        </div>
+      </div>
+
+      <!-- Highlights (Destaques) -->
+      <div class="border-t border-neutral-800/40 bg-neutral-950/20 py-12">
+        <div class="container-x">
+          <div id="highlights-grid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Gerado dinamicamente no script.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Categorias Rápidas -->
+      <section class="container-x py-16">
+        <div class="flex items-end justify-between gap-4 mb-8">
+          <div>
+            <div class="text-xs uppercase tracking-[0.25em] text-amber-500" data-i18n="categoriesTitle">Categorias</div>
+            <h2 class="font-display text-4xl sm:text-5xl mt-2 text-white" data-i18n="categoriesSubtitle">Escolha sua bebida</h2>
+          </div>
+          <a href="#catalog" data-target="catalog" class="text-sm text-gray-400 hover:text-amber-500 inline-flex items-center gap-1 transition-colors">
+            <span data-i18n="viewAll">Ver todas</span>
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+        <div id="categories-home-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <!-- Gerado dinamicamente no script.js -->
+        </div>
+      </section>
+
+      <!-- Produtos Mais Pedidos -->
+      <section class="container-x py-8 border-t border-neutral-800/30">
+        <div class="flex items-end justify-between gap-4 mb-8">
+          <div>
+            <div class="text-xs uppercase tracking-[0.25em] text-amber-500" data-i18n="featuredTitle">Destaques</div>
+            <h2 class="font-display text-4xl sm:text-5xl mt-2 text-white" data-i18n="featuredSubtitle">Mais pedidos</h2>
+          </div>
+          <a href="#catalog" data-target="catalog" class="text-sm text-gray-400 hover:text-amber-500 inline-flex items-center gap-1 transition-colors">
+            <span data-i18n="viewPromos">Ver todas</span>
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+        <div id="featured-products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <!-- Gerado dinamicamente no script.js -->
+        </div>
+      </section>
+
+      <!-- Seção Call to Action (CTA) -->
+      <section class="container-x py-16" data-aos="zoom-in">
+        <div class="relative overflow-hidden rounded-3xl border border-neutral-800 bg-gradient-to-br from-neutral-950 via-neutral-950 to-amber-950/20 p-10 md:p-16 shadow-card">
+          <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-amber-500/5 via-transparent to-transparent z-0"></div>
+          
+          <div class="relative z-10 max-w-xl">
+            <h2 class="font-display text-4xl sm:text-5xl text-white" data-i18n="ctaTitle">Pediu, chegou gelado.</h2>
+            <p class="mt-4 text-gray-400" data-i18n="ctaSubtitle">
+              Chame no WhatsApp, monte seu pedido e a gente entrega rapidinho com aquela cerveja no ponto certo.
+            </p>
+            <button onclick="openContactModal()" class="mt-8 inline-flex items-center gap-2 rounded-full bg-whats px-6 py-3 font-medium text-white hover:opacity-90 transition shadow-glow">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+              <span data-i18n="ctaBtn">Chamar no WhatsApp</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- SEÇÃO: CATÁLOGO (Categorias) -->
+    <section id="section-catalog" class="hidden container-x py-12">
+      <div>
+        <div class="text-xs uppercase tracking-[0.25em] text-amber-500" data-i18n="categoriesTitle">Categorias</div>
+        <h1 class="font-display text-5xl sm:text-6xl mt-2 text-white" data-i18n="categoriesSubtitle">Escolha sua bebida</h1>
+      </div>
+
+      <!-- Filtros Dinâmicos -->
+      <div id="catalog-filters" class="flex flex-wrap gap-2 mt-8">
+        <!-- Injetado via script.js -->
+      </div>
+
+      <!-- Lista de Produtos -->
+      <div id="catalog-products-grid" class="mt-8">
+        <!-- Injetado via script.js -->
+      </div>
+    </section>
+
+
+
+    <!-- SEÇÃO: CONTATO -->
+    <section id="section-contact" class="hidden container-x py-12">
+      <div class="grid lg:grid-cols-2 gap-10 items-start">
+        <div>
+          <div class="text-xs uppercase tracking-[0.25em] text-amber-500" data-i18n="navContact">Contato</div>
+          <h1 class="font-display text-5xl sm:text-6xl mt-2 text-white" data-i18n="contactTitle">Fala com a gente</h1>
+          <p class="mt-3 text-gray-400 max-w-lg" data-i18n="contactSubtitle">
+            O jeito mais rápido de pedir é pelo WhatsApp. Manda a lista, confirma o endereço e a gente entrega gelado.
+          </p>
+
+          <button onclick="openContactModal()" class="mt-6 inline-flex items-center gap-2 rounded-full bg-whats px-6 py-4 font-semibold text-white hover:opacity-90 shadow-glow transition-opacity">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            <span data-i18n="ctaBtn">Chamar no WhatsApp</span>
+          </button>
+
+          <!-- Cards de Informações -->
+          <div class="mt-8 grid sm:grid-cols-2 gap-4">
+            <div class="card-tile p-5 flex items-start gap-3 h-full">
+              <div class="grid h-10 w-10 place-items-center rounded-lg bg-amber-500/15 text-amber-500">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase tracking-wider text-gray-400" data-i18n="infoPhone">Telefone / WhatsApp</div>
+                <a href="tel:+5568999606407" class="text-sm font-medium text-white hover:text-amber-500 transition-colors">+55 (68) 99960-6407</a>
+              </div>
+            </div>
+
+
+
+            <div class="card-tile p-5 flex items-start gap-3 h-full sm:col-span-2">
+              <div class="grid h-10 w-10 place-items-center rounded-lg bg-amber-500/15 text-amber-500">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase tracking-wider text-gray-400" data-i18n="infoAddress">Endereço</div>
+                <div class="text-sm font-medium text-white" data-i18n="infoAddressVal">R. Manoel Ribeiro, 378, Brasiléia - AC, 69932-000</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mapa -->
+        <div class="card-tile overflow-hidden shadow-card">
+          <iframe
+            title="Mapa"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1646.628658339697!2d-68.74381615712065!3d-11.011214863293956!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x917eb73425e0aa55%3A0x74df61a231e107a3!2sR.%20Manoel%20Ribeiro%2C%20378%2C%20Brasil%C3%A9ia%20-%20AC%2C%2069932-000!5e0!3m2!1spt-BR!2sbr!4v1782336464088!5m2!1spt-BR!2sbr"
+            class="w-full h-[260px] sm:h-[360px] lg:h-[420px] border-0 opacity-85 hover:opacity-100 transition-opacity"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="strict-origin-when-cross-origin"
+          ></iframe>
+          <div class="p-5 bg-neutral-950/80">
+            <div class="font-display text-2xl text-white">Adega Imperial</div>
+            <div class="text-sm text-gray-400" data-i18n="infoAddressVal">R. Manoel Ribeiro, 378, Brasiléia - AC, 69932-000</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- RODAPÉ (SiteFooter) -->
+  <footer class="mt-16 sm:mt-24 border-t border-neutral-800 bg-neutral-950/40 py-8 pb-safe">
+    <div class="container-x flex flex-col md:flex-row items-center justify-between gap-6">
+      <!-- Lado Esquerdo: Logo e Informações -->
+      <div class="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+        <img src="assets/adega-imperial-transparente.png" alt="Adega Imperial Logo" class="h-24 sm:h-32 w-auto object-contain">
+        <div class="text-xs text-gray-500">
+          &copy; <span id="current-year">2026</span> IAA. Todos os direitos reservados.<br class="hidden sm:inline"> Desenvolvido por Kaelvora Studios.
+        </div>
+      </div>
+      
+      <!-- Lado Direito: Links -->
+      <div class="flex items-center gap-6 text-xs text-gray-500">
+        <button onclick="openInfoModal('sobre')" class="hover:text-amber-500 transition-colors">Sobre</button>
+        <button onclick="openInfoModal('privacidade')" class="hover:text-amber-500 transition-colors">Privacidade</button>
+        <button onclick="openInfoModal('termos')" class="hover:text-amber-500 transition-colors">Termos</button>
+        <button onclick="openContactModal()" class="hover:text-amber-500 transition-colors">Contato</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- GAVETA LATERAL FALE CONOSCO (Contact Drawer) -->
+  <div id="contact-overlay" class="contact-overlay" onclick="closeContactModal()"></div>
+  <div id="contact-drawer" class="contact-drawer">
+    <!-- Header -->
+    <div class="flex items-center justify-between p-5 border-b border-neutral-800">
+      <div class="flex items-center gap-2">
+        <svg class="h-5 w-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+        </svg>
+        <span class="font-display text-2xl text-white">Fale Conosco</span>
+      </div>
+      <button onclick="closeContactModal()" class="p-1 rounded-full text-gray-400 hover:text-white hover:bg-neutral-800 transition" aria-label="fechar">
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Conteúdo -->
+    <div class="flex-1 overflow-y-auto px-6 py-8 flex flex-col gap-6">
+      <img src="assets/adega-imperial-transparente.png" alt="Adega Imperial Logo" class="h-48 w-auto sm:h-56 object-contain mx-auto drop-shadow-[0_4px_30px_rgba(245,158,11,0.3)] transition-transform hover:scale-105">
+      <div class="text-sm text-gray-400 text-center leading-relaxed">
+        Olá! Faça seu pedido ou tire suas dúvidas sobre preços e entregas direto pelos nossos canais oficiais:
+      </div>
+
+      <!-- Botão WhatsApp -->
+      <a href="https://wa.me/5568999606407?text=Ol%C3%A1%2C%20gostaria%20de%20consultar%20os%20pre%C3%A7os%20das%20bebidas!" target="_blank" class="w-full inline-flex items-center justify-center gap-3 rounded-xl bg-whats py-4 text-base font-semibold text-white hover:opacity-95 shadow-glow transition-all">
+        <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984a9.96 9.96 0 001.37 5.054L2 22l5.077-1.331a9.927 9.927 0 004.93 1.302h.004c5.507 0 9.99-4.478 9.99-9.985 0-2.667-1.04-5.176-2.929-7.063A9.927 9.927 0 0012.012 2zm5.727 14.12c-.25.707-1.468 1.3-2.023 1.388-.507.08-1.168.148-3.344-.75-2.784-1.148-4.577-3.99-4.716-4.175-.139-.185-1.13-1.503-1.13-2.868 0-1.365.714-2.036.969-2.312.256-.275.556-.344.742-.344.186 0 .372.001.533.008.17.008.398-.065.623.475.228.549.779 1.9.847 2.037.068.138.113.3.022.483-.09.183-.135.3-.27.458-.135.16-.285.356-.407.478-.136.137-.279.287-.12.56.159.272.709 1.171 1.518 1.892.1.09.28.261.42.342.14.08.38.077.53-.096.15-.173.649-.757.822-1.016.173-.258.347-.215.584-.128.238.087 1.505.709 1.765.839.261.13.435.195.498.303.063.109.063.63-.187 1.337z"/>
+        </svg>
+        <span>Chamar no WhatsApp</span>
+      </a>
+
+      <!-- Botão Instagram -->
+      <a href="https://instagram.com/adega_imperialbr" target="_blank" class="w-full inline-flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 py-4 text-base font-semibold text-white hover:opacity-95 shadow-glow transition-all">
+        <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12.315 2c2.43 0 2.784.013 3.808.06 2.649.12 3.96 1.4 4.088 4.09.046 1.02.059 1.374.059 3.807 0 2.43-.013 2.784-.06 3.808-.12 2.649-1.4 3.96-4.09 4.088-1.02.046-1.374.059-3.807.059-2.43 0-2.784-.013-3.808-.06-2.649-.12-3.96-1.4-4.088-4.09C4.12 14.85 4.1 14.5 4.1 12.066c0-2.43.013-2.784.06-3.808.12-2.649 1.4-3.96 4.09-4.088 1.02-.046 1.374-.059 3.807-.059H12.315zm0-2c-2.478 0-2.92.01-3.923.056C5.008.204 3.01 2.19 2.58 7.593 2.535 8.595 2.525 8.937 2.525 12c0 3.063.01 3.405.056 4.407.43 5.403 2.428 7.39 7.828 7.828 1.002.046 1.344.056 4.407.056 3.063 0 3.405-.01 4.407-.056 5.403-.43 7.39-2.428 7.828-7.828.046-1.002.056-1.344.056-4.407 0-3.063-.01-3.405-.056-4.407-.43-5.403-2.428-7.39-7.828-7.828C15.421.01 15.08 0 12 0H12.315zM12 5.802a6.197 6.197 0 100 12.394 6.197 6.197 0 000-12.394zm0 10.198a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.88 1.44 1.44 0 000-2.88z"/>
+        </svg>
+        <span>Seguir no Instagram</span>
+      </a>
+
+      <!-- Botão Facebook -->
+      <a href="https://www.facebook.com/share/183EcLi9B7/" target="_blank" class="w-full inline-flex items-center justify-center gap-3 rounded-xl bg-[#1877F2] py-4 text-base font-semibold text-white hover:opacity-95 shadow-glow transition-all">
+        <svg class="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.93 8-4.96 8-9.75z"/>
+        </svg>
+        <span>Página do Facebook</span>
+      </a>
+
+      <!-- Botão Email -->
+      <a href="mailto:distribuidoraimperialltda23@gmail.com" class="w-full inline-flex items-center justify-center gap-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 py-4 text-base font-semibold text-white hover:opacity-95 shadow-glow transition-all">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+        <span>Enviar E-mail</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- MODAL DE DETALHES DO PRODUTO (Product Details Modal) -->
+  <div id="detail-modal" class="detail-modal">
+    <div class="detail-overlay" onclick="closeProductDetails()"></div>
+    <div class="detail-content grid md:grid-cols-2 max-w-4xl overflow-hidden">
+      <!-- Lado Esquerdo: Imagem/Mídia -->
+      <div id="modal-product-badge" class="relative h-72 md:h-full min-h-[300px] md:min-h-[450px] w-full bg-gradient-to-br from-amber-500/5 via-neutral-850 to-neutral-950 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-neutral-800/80 overflow-hidden">
+        <div id="modal-product-emoji" class="text-[7rem] sm:text-[8rem] select-none drop-shadow-[0_15px_30px_rgba(0,0,0,0.7)]">🍺</div>
+      </div>
+      
+      <!-- Lado Direito: Informações -->
+      <div class="p-6 sm:p-8 flex flex-col justify-between h-full min-h-[300px] md:min-h-[450px]">
+        <!-- Cabeçalho (Categoria e Fechar) -->
+        <div class="flex items-center justify-between gap-4">
+          <div id="modal-product-category">
+            <!-- Badge de Categoria -->
+          </div>
+          <button onclick="closeProductDetails()" class="p-1.5 rounded-full bg-neutral-850 hover:bg-neutral-800 border border-neutral-800 text-gray-400 hover:text-white transition" aria-label="fechar">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div class="flex-1 flex flex-col justify-center my-6 md:my-8">
+          <h2 id="modal-product-name" class="font-display text-3xl sm:text-4xl text-white">NOME DO PRODUTO</h2>
+          <p id="modal-product-desc" class="text-sm sm:text-base text-gray-400 mt-4 leading-relaxed">Descrição do produto.</p>
+        </div>
+
+        <!-- Ação -->
+        <div class="pt-6 border-t border-neutral-800/60">
+          <button id="modal-product-action" class="w-full inline-flex items-center justify-center gap-3 rounded-xl bg-amber-500 hover:bg-amber-600 px-6 py-4 font-semibold text-black shadow-glow transition-all">
+            <!-- Preenchido via script.js -->
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE INFORMAÇÕES (Sobre, Termos, Privacidade) -->
+  <div id="info-modal" class="detail-modal">
+    <div class="detail-overlay" onclick="closeInfoModal()"></div>
+    <div class="detail-content max-w-lg p-6">
+      <div class="flex items-center justify-between gap-4 border-b border-neutral-800 pb-4 mb-4">
+        <h2 id="info-modal-title" class="font-display text-3xl text-white">TÍTULO</h2>
+        <button onclick="closeInfoModal()" class="p-1.5 rounded-full bg-neutral-800 hover:bg-neutral-700 text-gray-400 hover:text-white transition" aria-label="fechar">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div id="info-modal-body" class="text-sm text-gray-300 leading-relaxed space-y-3">
+        <!-- Preenchido via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Configurar ano do rodapé -->
+  <script>
+    document.getElementById("current-year").textContent = new Date().getFullYear();
+  </script>
+
+  <!-- Scripts locais -->
+  <script src="languages.js"></script>
+  <script src="script.js"></script>
+  
+  <!-- AOS JS & Inicialização -->
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>
+    AOS.init({
+      duration: window.innerWidth < 768 ? 450 : 700,
+      once: true,
+      offset: 60,
+      easing: 'ease-out-cubic',
+      disable: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "adega-imperial",
+  "version": "1.0.0",
+  "description": "Adega Imperial - Distribuidora",
+  "scripts": {
+    "dev": "py server.py"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
