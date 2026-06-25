@@ -375,3 +375,106 @@ button, .card-tile-hover {
 @media (max-width: 380px) {
   .container-x { padding-inline: 0.75rem; }
 }
+
+/* ==========================================
+   MENU CIRCULAR EXPANDÍVEL (MOBILE)
+   ========================================== */
+#mobile-circular-menu {
+  position: relative;
+  width: 2.5rem; /* 40px */
+  height: 2.5rem; /* 40px */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Os itens filhos do menu circular */
+.circular-menu-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2.5rem; /* 40px */
+  height: 2.5rem; /* 40px */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 10;
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Rotação e animação do ícone principal */
+#circular-menu-icon {
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#mobile-circular-menu[data-expanded="true"] #circular-menu-icon {
+  transform: rotate(90deg);
+}
+
+/* Estados expandidos: espelhados da lógica React */
+#mobile-circular-menu[data-expanded="true"] .circular-menu-item:nth-child(2) {
+  transform: translateY(3.25rem); /* ~52px */
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#mobile-circular-menu[data-expanded="true"] .circular-menu-item:nth-child(3) {
+  transform: translateY(6.5rem); /* ~104px */
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#mobile-circular-menu[data-expanded="true"] .circular-menu-item:nth-child(4) {
+  transform: translateY(9.75rem); /* ~156px */
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#mobile-circular-menu[data-expanded="true"] .circular-menu-item:nth-child(5) {
+  transform: translateY(13rem); /* ~208px */
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Staggered transition delays para abertura e fechamento */
+.circular-menu-item:nth-child(2) { transition-delay: 40ms; }
+.circular-menu-item:nth-child(3) { transition-delay: 80ms; }
+.circular-menu-item:nth-child(4) { transition-delay: 120ms; }
+.circular-menu-item:nth-child(5) { transition-delay: 160ms; }
+
+/* Text Tooltips do menu */
+.circular-menu-label {
+  position: absolute;
+  right: 3.25rem; /* 52px */
+  background: rgba(16, 16, 16, 0.95);
+  border: 1px solid var(--border);
+  color: oklch(0.97 0.012 80);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.9) translateX(5px);
+  transition: opacity 200ms ease, transform 200ms ease;
+  will-change: opacity, transform;
+}
+
+#mobile-circular-menu[data-expanded="true"] .circular-menu-item:hover .circular-menu-label,
+#mobile-circular-menu[data-expanded="true"] .circular-menu-item:active .circular-menu-label {
+  opacity: 1;
+  transform: scale(1) translateX(0);
+}
+
+/* Exibir labels automaticamente no mobile para ficar mais fácil de entender */
+@media (max-width: 768px) {
+  #mobile-circular-menu[data-expanded="true"] .circular-menu-label {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+}

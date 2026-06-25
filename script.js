@@ -198,7 +198,9 @@ function initRouter() {
     }
     
     // Fechar menu mobile se estiver aberto
-    document.getElementById("mobile-menu").classList.add("hidden");
+    const mobileMenu = document.getElementById("mobile-menu");
+    if (mobileMenu) mobileMenu.classList.add("hidden");
+    closeCircularMenu();
   };
 
   // Escutar cliques em elementos de navegação
@@ -597,10 +599,34 @@ function showToast(message, isError = false) {
   }, 3000);
 }
 
-// Menu Mobile Toggle Helper
-function toggleMobileMenu() {
-  const menu = document.getElementById("mobile-menu");
-  menu.classList.toggle("hidden");
+// Menu Mobile Toggle Helpers
+function toggleCircularMenu() {
+  const menu = document.getElementById("mobile-circular-menu");
+  if (!menu) return;
+  const isExpanded = menu.getAttribute("data-expanded") === "true";
+  menu.setAttribute("data-expanded", !isExpanded);
+  
+  const icon = document.getElementById("circular-menu-icon");
+  if (icon) {
+    if (!isExpanded) {
+      // Mudar ícone para X
+      icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>`;
+    } else {
+      // Mudar ícone para hambúrguer clássico
+      icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>`;
+    }
+  }
+}
+
+function closeCircularMenu() {
+  const menu = document.getElementById("mobile-circular-menu");
+  if (menu) {
+    menu.setAttribute("data-expanded", "false");
+    const icon = document.getElementById("circular-menu-icon");
+    if (icon) {
+      icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>`;
+    }
+  }
 }
 
 // Abrir modal de informações (Sobre, Termos, Privacidade)

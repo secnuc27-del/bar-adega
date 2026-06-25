@@ -62,6 +62,7 @@ const translations = {
     backToCategories: "Ver todas",
     addToCart: "Consultar no WhatsApp",
     promoBadge: "Destaque",
+    backToHome: "Voltar para o início",
     // Catalog Data
     categoriesData: [
       { slug: "cervejas", name: "Cervejas", tagline: "Estupidamente geladas", emoji: "🍺", accent: "from-amber-500/20 to-amber-600/5", image: "fotos/cerveja.ff.jpeg" },

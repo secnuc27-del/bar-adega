@@ -58,26 +58,53 @@
           Fale Conosco
         </button>
 
-        <!-- Menu Hamburger Mobile -->
-        <button onclick="toggleMobileMenu()" class="md:hidden p-2 text-gray-400 hover:text-white" aria-label="menu">
-          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
-          </svg>
-        </button>
-      </div>
-    </div>
+        <!-- Menu Hambúrguer Mobile (Circular Expandível) -->
+        <div id="mobile-circular-menu" class="md:hidden relative w-10 h-10" data-expanded="false">
+          <!-- Trigger (Sempre Visível) -->
+          <button onclick="toggleCircularMenu()" class="relative w-10 h-10 bg-neutral-800 border border-neutral-700 text-white rounded-full flex items-center justify-center cursor-pointer shadow-lg active:scale-95 transition-all z-50 hover:bg-neutral-700" aria-label="menu">
+            <svg id="circular-menu-icon" class="h-5 w-5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
 
-    <!-- Menu de Navegação Mobile (Expansível) -->
-    <div id="mobile-menu" class="hidden md:hidden border-t border-neutral-800 bg-neutral-900">
-      <div class="container-x py-3 flex flex-col gap-2">
-        <a href="#home" data-target="home" class="nav-link nav-active py-2 text-sm" data-i18n="navHome">Início</a>
-        <a href="#catalog" data-target="catalog" class="nav-link py-2 text-sm text-gray-400" data-i18n="navCategories">Bebidas</a>
-        <a href="#contact" data-target="contact" class="nav-link py-2 text-sm text-gray-400" data-i18n="navContact">Contato</a>
-        <button onclick="openContactModal()" class="mt-2 w-full inline-flex items-center justify-center gap-2 rounded-full bg-amber-500 px-4 py-2.5 text-sm font-semibold text-black hover:bg-amber-600 transition-colors">
-          Fale Conosco
-        </button>
-      </div>
-    </div>
+          <!-- Itens do Menu (Expandem para baixo) -->
+          <div class="circular-menu-item">
+            <span class="circular-menu-label" data-i18n="navHome">Início</span>
+            <a href="#home" data-target="home" onclick="toggleCircularMenu()" class="w-10 h-10 bg-neutral-900 border border-neutral-700 text-amber-500 rounded-full flex items-center justify-center shadow-lg hover:bg-neutral-800 transition-colors">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+              </svg>
+            </a>
+          </div>
+
+          <div class="circular-menu-item">
+            <span class="circular-menu-label" data-i18n="navCategories">Bebidas</span>
+            <a href="#catalog" data-target="catalog" onclick="toggleCircularMenu()" class="w-10 h-10 bg-neutral-900 border border-neutral-700 text-amber-500 rounded-full flex items-center justify-center shadow-lg hover:bg-neutral-800 transition-colors">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+              </svg>
+            </a>
+          </div>
+
+          <div class="circular-menu-item">
+            <span class="circular-menu-label" data-i18n="navContact">Contato</span>
+            <a href="#contact" data-target="contact" onclick="toggleCircularMenu()" class="w-10 h-10 bg-neutral-900 border border-neutral-700 text-amber-500 rounded-full flex items-center justify-center shadow-lg hover:bg-neutral-800 transition-colors">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+            </a>
+          </div>
+
+          <div class="circular-menu-item">
+            <span class="circular-menu-label" data-i18n="orderNow">Fale Conosco</span>
+            <button onclick="openContactModal(); toggleCircularMenu();" class="w-10 h-10 bg-amber-500 text-black rounded-full flex items-center justify-center shadow-lg hover:bg-amber-600 transition-colors">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
   </header>
 
   <!-- CONTEÚDO PRINCIPAL (SPA) -->
@@ -178,6 +205,13 @@
 
     <!-- SEÇÃO: CATÁLOGO (Categorias) -->
     <section id="section-catalog" class="hidden container-x py-12">
+      <!-- Botão Voltar ao Início -->
+      <a href="#home" data-target="home" class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-amber-500 transition-colors mb-6 group">
+        <svg class="h-4 w-4 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        <span data-i18n="backToHome">Voltar para o início</span>
+      </a>
       <div>
         <div class="text-xs uppercase tracking-[0.25em] text-amber-500" data-i18n="categoriesTitle">Categorias</div>
         <h1 class="font-display text-5xl sm:text-6xl mt-2 text-white" data-i18n="categoriesSubtitle">Escolha sua bebida</h1>
@@ -198,6 +232,13 @@
 
     <!-- SEÇÃO: CONTATO -->
     <section id="section-contact" class="hidden container-x py-12">
+      <!-- Botão Voltar ao Início -->
+      <a href="#home" data-target="home" class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-amber-500 transition-colors mb-6 group">
+        <svg class="h-4 w-4 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        <span data-i18n="backToHome">Voltar para o início</span>
+      </a>
       <div class="grid lg:grid-cols-2 gap-10 items-start">
         <div>
           <div class="text-xs uppercase tracking-[0.25em] text-amber-500" data-i18n="navContact">Contato</div>
