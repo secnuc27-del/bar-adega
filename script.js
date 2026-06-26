@@ -791,13 +791,16 @@ function openInfoModal(type) {
   
   if (type === "sobre") {
     titleEl.textContent = "Sobre Nós";
-    bodyEl.innerHTML = settings.aboutText.split("\n\n").map(p => `<p class="mb-4">${p.replace(/\n/g, "<br>")}</p>`).join("");
+    bodyEl.innerHTML = settings.aboutText.split("\n\n").map(p => `<p class="mb-4">${p.replace(/\n/g, "<br>")}</p>`).join("") + 
+      `<p class="pt-2 border-t border-neutral-800 text-xs text-gray-500">Desenvolvido por <strong>Kaelvora Studios</strong>. Qualquer dúvida sobre a plataforma, entre em contato com a empresa responsável pelo e-mail: <a href="mailto:kaelvorastudios2026@gmail.com" class="text-amber-500 hover:underline">kaelvorastudios2026@gmail.com</a>.</p>`;
   } else if (type === "termos") {
     titleEl.textContent = "Termos de Uso";
-    bodyEl.innerHTML = settings.termsText.split("\n\n").map(p => `<p class="mb-4">${p.replace(/\n/g, "<br>")}</p>`).join("");
+    bodyEl.innerHTML = settings.termsText.split("\n\n").map(p => `<p class="mb-4">${p.replace(/\n/g, "<br>")}</p>`).join("") +
+      `<p class="pt-2 border-t border-neutral-800 text-xs text-gray-500">Plataforma desenvolvida por <strong>Kaelvora Studios</strong>. Qualquer dúvida sobre os termos ou funcionamento do site, entre em contato com a empresa responsável pelo e-mail: <a href="mailto:kaelvorastudios2026@gmail.com" class="text-amber-500 hover:underline">kaelvorastudios2026@gmail.com</a>.</p>`;
   } else if (type === "privacidade") {
     titleEl.textContent = "Política de Privacidade";
-    bodyEl.innerHTML = settings.privacyText.split("\n\n").map(p => `<p class="mb-4">${p.replace(/\n/g, "<br>")}</p>`).join("");
+    bodyEl.innerHTML = settings.privacyText.split("\n\n").map(p => `<p class="mb-4">${p.replace(/\n/g, "<br>")}</p>`).join("") +
+      `<p class="pt-2 border-t border-neutral-800 text-xs text-gray-500">Desenvolvido por <strong>Kaelvora Studios</strong>. Qualquer dúvida sobre privacidade ou tratamento de informações, entre em contato com a empresa responsável pelo e-mail: <a href="mailto:kaelvorastudios2026@gmail.com" class="text-amber-500 hover:underline">kaelvorastudios2026@gmail.com</a>.</p>`;
   }
   
   modal.classList.add("open");
