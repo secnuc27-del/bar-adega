@@ -280,8 +280,19 @@ class SecureHandler(http.server.SimpleHTTPRequestHandler):
 # =====================================================
 def run_server() -> None:
     import webbrowser
+    import shutil
     script_dir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(script_dir)
+
+    # Copiar a fachada se ela existir na pasta fotos
+    src_img = os.path.join(script_dir, '..', 'fotos', 'fachada.png')
+    dst_img = os.path.join(script_dir, 'assets', 'fachada.png')
+    if os.path.exists(src_img):
+        try:
+            shutil.copy(src_img, dst_img)
+            print("  [Auto] Fachada copiada para assets com sucesso.")
+        except Exception as e:
+            print(f"  [Auto] Erro ao copiar fachada: {e}")
 
     socketserver.TCPServer.allow_reuse_address = True
     try:

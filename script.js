@@ -123,6 +123,38 @@
 // Configuração de Contato da Adega (Configurações dinâmicas mescladas do Firebase ou Local)
 let dbSettings = null;
 
+// Função para destacar palavras no título (suporta *texto*, [texto] e fallback automático)
+function formatTitle(text) {
+  if (!text) return "";
+  
+  // Se já contém tags HTML de destaque, retorna diretamente para evitar duplo envelopamento
+  if (text.includes("<span") || text.includes("<div")) {
+    return text;
+  }
+  
+  const spanClass = 'bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 bg-clip-text text-transparent font-display font-extrabold drop-shadow-[0_2px_8px_rgba(245,158,11,0.25)] inline-block';
+  
+  // Replaces *word* or **word** with a highlighted span
+  const regexAsterisk = /\*\*?([^*]+)\*\*?/g;
+  if (regexAsterisk.test(text)) {
+    return text.replace(regexAsterisk, `<span class="${spanClass}">$1</span>`);
+  }
+  
+  // Replaces [word] with a highlighted span
+  const regexBrackets = /\[([^\]]+)\]/g;
+  if (regexBrackets.test(text)) {
+    return text.replace(regexBrackets, `<span class="${spanClass}">$1</span>`);
+  }
+
+  // Fallback: se não tiver marcações mas tiver palavras-chave comuns de adega/bebidas, destaca automaticamente
+  const regexWord = /(estupidamente|gelad[ao]s?|melhor(es)?|adega|imperial|bebidas?|cervejas?|destilados?)/gi;
+  if (regexWord.test(text)) {
+    return text.replace(regexWord, `<span class="${spanClass}">$1</span>`);
+  }
+  
+  return text;
+}
+
 // Estado Global da Aplicação (Travado em Português)
 const currentLang = "pt";
 let activeSection = "home";
@@ -136,6 +168,7 @@ let dbProducts = [];
 function getDefaultSettings() {
   return {
     whatsapp: "5568999606407",
+    whatsapp2: "5568994083840",
     instagram: "https://instagram.com/adega_imperialbr",
     facebook: "https://www.facebook.com/share/183EcLi9B7/",
     email: "distribuidoraimperialltda23@gmail.com",
@@ -178,6 +211,25 @@ const getT = () => {
 
 // Inicialização
 document.addEventListener("DOMContentLoaded", () => {
+  // Carregar dados salvos em cache imediatamente para evitar flicker visual (FOOC)
+  const cachedSettings = localStorage.getItem("_local_settings_cache") || localStorage.getItem("_local_settings");
+  if (cachedSettings) {
+    try { dbSettings = JSON.parse(cachedSettings); } catch (e) {}
+  }
+  
+  const cachedCats = localStorage.getItem("_local_categories_cache") || localStorage.getItem("_local_categories");
+  if (cachedCats) {
+    try { dbCategories = JSON.parse(cachedCats); } catch (e) {}
+  }
+  
+  const cachedProds = localStorage.getItem("_local_products_cache") || localStorage.getItem("_local_products");
+  if (cachedProds) {
+    try { dbProducts = JSON.parse(cachedProds); } catch (e) {}
+  }
+
+  // Renderizar o estado cacheado imediatamente antes de iniciar conexões de rede
+  renderAll();
+
   initRouter();
   
   // Inicializar conexão com o banco de dados (Firebase ou Local)
@@ -294,7 +346,7 @@ function renderAll() {
     const key = el.getAttribute("data-i18n");
     if (t[key]) {
       if (key === "heroTitle") {
-        el.innerHTML = t[key];
+        el.innerHTML = formatTitle(t[key]);
       } else {
         el.textContent = t[key];
       }
@@ -831,6 +883,7 @@ function initClientDatabase() {
       db.collection("settings").doc("general").onSnapshot((doc) => {
         if (doc.exists) {
           dbSettings = doc.data();
+          localStorage.setItem("_local_settings_cache", JSON.stringify(dbSettings));
         } else {
           dbSettings = getDefaultSettings();
         }
@@ -846,6 +899,8 @@ function initClientDatabase() {
         
         if (dbCategories.length === 0) {
           dbCategories = [...translations[currentLang].categoriesData];
+        } else {
+          localStorage.setItem("_local_categories_cache", JSON.stringify(dbCategories));
         }
         renderAll();
       });
@@ -859,6 +914,8 @@ function initClientDatabase() {
         
         if (dbProducts.length === 0) {
           dbProducts = [...translations[currentLang].productsData];
+        } else {
+          localStorage.setItem("_local_products_cache", JSON.stringify(dbProducts));
         }
         renderAll();
       });
@@ -900,3 +957,50 @@ function loadLocalStorageClient() {
   
   renderAll();
 }
+
+// ── WhatsApp dual-contact toggle ─────────────────────────────────────────────
+let waContactsOpen = false;
+
+function toggleWaContacts() {
+  waContactsOpen = !waContactsOpen;
+  const container = document.getElementById("wa-contacts-container");
+  const chevron   = document.getElementById("wa-toggle-chevron");
+  const btn       = document.getElementById("wa-toggle-btn");
+
+  if (!container) return;
+
+  if (waContactsOpen) {
+    container.style.maxHeight = container.scrollHeight + "px";
+    container.style.opacity   = "1";
+    container.style.marginTop = "8px";
+    if (chevron) chevron.style.transform = "rotate(180deg)";
+    if (btn) btn.classList.add("rounded-b-none");
+  } else {
+    container.style.maxHeight = "0";
+    container.style.opacity   = "0";
+    container.style.marginTop = "0";
+    if (chevron) chevron.style.transform = "rotate(0deg)";
+    if (btn) btn.classList.remove("rounded-b-none");
+  }
+}
+
+// Reset wa panel when any contact drawer closes
+document.addEventListener("click", function(e) {
+  const drawer = document.getElementById("contact-drawer") ||
+                 document.getElementById("drawer-contact");
+  if (!drawer) return;
+  // If user clicked outside the drawer, collapse wa
+  if (!drawer.contains(e.target)) {
+    const container = document.getElementById("wa-contacts-container");
+    const chevron   = document.getElementById("wa-toggle-chevron");
+    const btn       = document.getElementById("wa-toggle-btn");
+    if (container && waContactsOpen) {
+      waContactsOpen = false;
+      container.style.maxHeight = "0";
+      container.style.opacity   = "0";
+      container.style.marginTop = "0";
+      if (chevron) chevron.style.transform = "rotate(0deg)";
+      if (btn) btn.classList.remove("rounded-b-none");
+    }
+  }
+});
