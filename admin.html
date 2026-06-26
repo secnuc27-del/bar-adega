@@ -1399,7 +1399,7 @@
       form.reset();
       document.getElementById("product-id").value = "";
       clearGallery();
-      // Popula dropdown DEPOIS do form.reset() para as options não serem apagadas
+      // Popula dropdown DEPOIS do form.reset()
       populateCategoriesDropdown();
 
       if (id) {
@@ -1408,12 +1408,29 @@
         if (p) {
           document.getElementById("product-id").value = p.id;
           document.getElementById("product-name").value = p.name;
-          // Definir categoria DEPOIS de popular o dropdown
-          document.getElementById("product-category").value = p.category;
           document.getElementById("product-emoji").value = p.emoji || "";
           document.getElementById("product-volume").value = p.size || p.volume || "";
           document.getElementById("product-pack").value = p.pack || "";
           document.getElementById("product-description").value = p.description || "";
+
+          // Definir categoria: tenta agora, re-tenta depois se Firestore ainda não chegou
+          function setCategoryValue() {
+            const sel = document.getElementById("product-category");
+            // Garante que a opção existe; se não, cria ela temporariamente
+            if (!sel.querySelector(`option[value="${p.category}"]`)) {
+              const opt = document.createElement("option");
+              opt.value = p.category;
+              opt.textContent = p.category.charAt(0).toUpperCase() + p.category.slice(1);
+              sel.appendChild(opt);
+            }
+            sel.value = p.category;
+          }
+          setCategoryValue();
+          // Re-tenta após Firestore carregar categorias reais (listener assíncrono)
+          setTimeout(() => {
+            populateCategoriesDropdown();
+            setCategoryValue();
+          }, 600);
 
           // Restaurar galeria existente
           const existingMedia = p.gallery && p.gallery.length > 0 ? p.gallery : (p.image ? [p.image] : []);
