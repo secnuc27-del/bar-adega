@@ -17,7 +17,7 @@ const firebaseConfig = {
 };
 
 // Senha de acesso ao Painel Admin (modifique se quiser)
-const ADMIN_PASSCODE = "1234";
+const ADMIN_PASSCODE = "ade1020@";
 
 // Expõe as chaves de forma global
 window.firebaseConfig = firebaseConfig;
