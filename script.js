@@ -168,7 +168,7 @@ let dbProducts = [];
 function getDefaultSettings() {
   return {
     whatsapp: "5568999606407",
-    whatsapp2: "5568994083840",
+    whatsapp2: "556899408384",
     instagram: "https://instagram.com/adega_imperialbr",
     facebook: "https://www.facebook.com/share/183EcLi9B7/",
     email: "distribuidoraimperialltda23@gmail.com",
