@@ -425,6 +425,7 @@ function renderAll() {
   // 7. Atualizar Redes Sociais, Mapas e Links de Contato Dinamicamente
   const settings = dbSettings || getDefaultSettings();
   const waNumber = settings.whatsapp;
+  const waNumber2 = settings.whatsapp2 || "556899408384";
   const instaUrl = settings.instagram;
   const fbUrl = settings.facebook;
   const emailAddr = settings.email;
@@ -438,7 +439,13 @@ function renderAll() {
       const url = new URL(el.href);
       msg = url.searchParams.get("text") || "Olá!";
     } catch (e) {}
-    el.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`;
+    
+    // Mantém o segundo número (atendimento) separado do principal
+    if (el.id === "social-wa2-btn" || el.href.includes("556899408384")) {
+      el.href = `https://wa.me/${waNumber2}?text=${encodeURIComponent(msg)}`;
+    } else {
+      el.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`;
+    }
   });
 
   // Instagram links
